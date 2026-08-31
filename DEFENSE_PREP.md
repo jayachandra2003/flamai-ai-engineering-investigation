@@ -85,7 +85,7 @@ Concise, interview-ready answers for the 30-minute technical defense of "The Aud
 * **Answer:** A proposed decision assumption of $\ge \mathbf{70\%}$ preference win-rate for casual tone over baseline, with $\ge \mathbf{95\%}$ factual retention on blind paired evaluation by the native reviewer.
 
 ### 21. What is the kill criterion?
-* **Answer:** If by **Day 7**, prompt engineering achieves $< \mathbf{50\%}$ casual preference win-rate or drops below $\mathbf{90\%}$ factual accuracy on Hindi/Kannada, terminate Option C and pivot to Option A (SFT/LoRA).
+* **Answer:** If Option C fails the Day-7 criterion (e.g. $< 50\%$ casual preference or $< 90\%$ factual accuracy), begin the Option A feasibility/pilot work using the remaining available A100 allocation, subject to confirming that the remaining compute window is still available.
 
 ### 22. What did AI get wrong during this investigation?
 * **Answer:**

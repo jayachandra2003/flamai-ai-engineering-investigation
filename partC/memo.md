@@ -57,8 +57,7 @@
 
 ## Kill Criterion
 
-> **KILL CRITERION (Proposed Decision Threshold):** If by **Day 7 (end of Week 1)**, after iterating on at least 4 prompt engineering variants across Hindi and Kannada, Option C achieves $< \mathbf{50\%}$ casual preference win-rate OR drops below $\mathbf{90\%}$ factual accuracy:
-> **Immediately terminate Option C and commit the remaining available A100 compute allocation (up to 336 GPU-hours if scheduled for Weeks 2–3, or 168 GPU-hours if active from Day 1) to Option A (Synthetic SFT).**
+> **KILL CRITERION (Proposed Decision Threshold):** If Option C fails the Day-7 criterion, begin the Option A feasibility/pilot work using the remaining available A100 allocation, subject to confirming that the remaining compute window is still available.
 
 ---
 
