@@ -42,13 +42,13 @@ This investigation conducted a comprehensive forensic audit of the claims, measu
 
 Controlled experiments were executed across starter samples and FLORES-200 using `partA/audit/run_audit.py`:
 
-| Hypothesis / Issue | Implementation Location | Before Value (Observed) | After Value (Corrected) | Delta / Change (%) | Audit Finding & Status |
+| Hypothesis / Issue | Implementation Location | Before Value (Observed) | After Value (Corrected) | Delta / Change (%) | Audit Finding & Classification |
 |---|---|:---:|:---:|:---:|---|
-| **Whitespace Splitting** | `fertility.py:62`<br>`line.split(" ")` vs `split()` | Starter eng: `1.2652`<br>Starter hin: `7.4485` | Starter eng: `1.2831`<br>Starter hin: `7.5985` | eng: **+1.41%**<br>hin: **+2.01%** | **CONFIRMED IMPLEMENTATION FLAW:** `split(" ")` creates empty strings on multiple spaces. On clean FLORES-200, effect is minor (+0.0% to +0.04% for eng/hin; +3.6% for kan). |
-| **Lowercasing Asymmetry** | `fertility.py:60`<br>`line.lower()` vs raw case | FLORES eng: 26,696 tok<br>FLORES hin: 191,842 tok | FLORES eng: 25,741 tok<br>FLORES hin: 191,828 tok | eng: **-3.58%**<br>hin: **-0.01%** | **CONFIRMED IMPLEMENTATION ASYMMETRY:** Devanagari has no casing (0.0% effect), but lowercasing fractures English uppercase acronyms (`NASA`, `GPU`), slightly inflating English token counts. |
-| **Macro vs Micro Aggregation** | `fertility.py:67`<br>Mean of ratios vs Ratio of sums | LLaMA-3 eng: `1.2395`<br>LLaMA-3 hin: `2.6667` | LLaMA-3 eng: `1.2309`<br>LLaMA-3 hin: `2.6562` | eng: **-0.70%**<br>hin: **-0.39%** | **CONFIRMED MINOR DIFFERENCE:** Micro-average is mathematically preferable for total system volume; divergence on sentence data is $<1.3\%$. |
-| **Tokenizer Model Mismatch** | `fertility.py:79`<br>GPT-2 vs Modern Multilingual | GPT-2 hin: 191,828 tok (7.45× eng) | LLaMA-3: 65,361 tok (2.53× eng)<br>XLM-R: 36,634 tok (1.26× eng) | LLaMA-3: **-65.9%**<br>XLM-R: **-80.9%** | **CONFIRMED MAJOR METHODOLOGICAL FLAW:** Hindi token expansion is strongly tokenizer-dependent and cannot be attributed solely to the script. |
-| **Unicode NFC Normalization (Suspicious-but-Correct)** | `fertility.py:49`<br>NFC vs NFD normalization | FLORES kan (NFC): 349,802 tok | FLORES kan (NFD): 364,303 tok | kan: **+4.15% inflation** | **CONFIRMED CORRECT:** In Indic scripts, decomposed NFD matras fragment into byte-fallback tokens. NFC canonical composition is standard, essential NLP preprocessing. |
+| **Whitespace Splitting** | `fertility.py:62`<br>`line.split(" ")` vs `split()` | Starter eng: `1.2652`<br>Starter hin: `7.4485` | Starter eng: `1.2831`<br>Starter hin: `7.5985` | eng: **+1.41%**<br>hin: **+2.01%** | **ACTUAL IMPLEMENTATION BUG:** `split(" ")` creates empty strings on multiple spaces. On clean FLORES-200, effect is minor (+0.0% to +0.04% for eng/hin; +3.6% for kan). |
+| **Lowercasing Asymmetry** | `fertility.py:60`<br>`line.lower()` vs raw case | FLORES eng: 26,696 tok<br>FLORES hin: 191,842 tok | FLORES eng: 25,741 tok<br>FLORES hin: 191,828 tok | eng: **-3.58%**<br>hin: **-0.01%** | **INTENTIONAL PREPROCESSING CHOICE / DISTORTION:** Devanagari has no casing (0.0% effect), but lowercasing fractures English uppercase acronyms (`NASA`, `GPU`), slightly inflating English token counts. |
+| **Macro vs Aggregate Averaging** | `fertility.py:67`<br>Macro vs Aggregate | LLaMA-3 eng: `1.2395`<br>LLaMA-3 hin: `2.6667` | LLaMA-3 eng: `1.2309`<br>LLaMA-3 hin: `2.6562` | eng: **-0.70%**<br>hin: **-0.39%** | **CONCEPTUAL/METRIC ISSUE:** Macro $\frac{1}{N}\sum \frac{T_i}{W_i}$ measures average sentence fertility; Aggregate $\frac{\sum T_i}{\sum W_i}$ measures total token cost volume. Divergence is $<1.3\%$. |
+| **Tokenizer Model Mismatch** | `fertility.py:79`<br>GPT-2 vs Modern Multilingual | GPT-2 hin: 191,828 tok (7.45× eng) | LLaMA-3: 65,361 tok (2.53× eng)<br>XLM-R: 36,634 tok (1.26× eng) | LLaMA-3: **-65.9%**<br>XLM-R: **-80.9%** | **MAJOR METHODOLOGICAL FLAW:** Hindi token expansion is strongly tokenizer-dependent and cannot be attributed solely to the script. |
+| **Unicode NFC Normalization** | `fertility.py:49`<br>NFC vs NFD normalization | FLORES kan (NFC): 349,802 tok | FLORES kan (NFD): 364,303 tok | kan: **+4.15% inflation** | **SUSPICIOUS-LOOKING BUT ACTUALLY CORRECT:** In Indic scripts, decomposed NFD matras fragment into byte-fallback tokens. NFC canonical composition is essential NLP preprocessing. |
 
 ---
 
@@ -75,18 +75,16 @@ Controlled evaluation on 997 parallel FLORES-200 sentences across 4 tokenizers v
 | | | **kan** | 39,602 | 2.57 | 0.301 | 0.111 | **1.37×** | **1.85×** |
 | | | **tel** | 38,708 | 2.36 | 0.304 | 0.114 | **1.33×** | **1.71×** |
 
-#### Why Whitespace Fertility Was Rejected as Primary Metric:
-$$\text{Fertility Ratio} = \left(\frac{T_{\text{lang}}}{T_{\text{eng}}}\right) \times \left(\frac{W_{\text{eng}}}{W_{\text{lang}}}\right)$$
-Because Kannada is agglutinative, expressing 997 sentences in only 15,430 words vs. English's 20,954 words ($\frac{W_{\text{eng}}}{W_{\text{kan}}} = \mathbf{1.358}$), whitespace fertility inflates apparent inefficiency by **+35.8%**. On XLM-R, Kannada fertility is 1.85× English, but its actual token footprint is only **1.37×** English!
-
-* **Selected Primary Routing/Cost Metric:** **Relative Token Expansion Ratio on Parallel Evaluation Data** ($\frac{\sum T_{\text{lang}}}{\sum T_{\text{eng}}}$).
-* **Selected Secondary Diagnostic Metric:** **Tokens per UTF-8 Byte** ($\text{Tok} / \text{Byte}$) relative to encoded representation.
+#### Denominator Reasoning:
+* "For this aligned parallel corpus, tokens per parallel sentence is the most directly interpretable denominator because the same underlying content is represented across languages."
+* In agglutinative languages like Kannada, expressing 997 sentences in only 15,430 words vs. English's 20,954 words ($\frac{W_{\text{eng}}}{W_{\text{kan}}} = \mathbf{1.358}$) inflates whitespace fertility by **+35.8%**.
+* **Selected Primary Metric:** **Relative Token Expansion Ratio on Parallel Evaluation Data** ($\frac{\sum T_{\text{lang}}}{\sum T_{\text{eng}}}$).
+* **Selected Secondary Diagnostic:** **Tokens per UTF-8 Byte** ($\text{Tok} / \text{Byte}$).
 
 ---
 
 ### A4 — Recommendation Summary
-* **Recommendation Memo:** Synthesized in `partA/recommendation_memo.md`.
-* **Headline Advice:** Base cost models on Relative Token Expansion on parallel corpora rather than whitespace-word fertility. Do not budget a 6× serving cost multiplier or separate Indic routing infrastructure based on GPT-2 benchmarks.
+* **Headline Advice:** Base routing and cost models on Relative Token Expansion on parallel corpora. Do not budget a 6× serving cost multiplier or separate Indic routing infrastructure based on GPT-2 benchmarks.
 * **Production Metric to Monitor:** **Mean Total Tokens per Request by Language relative to English** ($\frac{\bar{T}_{\text{lang, req}}}{\bar{T}_{\text{eng, req}}}$).
 
 ---
@@ -100,14 +98,11 @@ Because Kannada is agglutinative, expressing 997 sentences in only 15,430 words 
   $$\text{KV bytes/token} = 2 \times 28 \times 8 \times 128 \times 2 = \mathbf{114,688\text{ bytes}} = \mathbf{112.0\text{ KiB/token}}$$
 * **KV Memory per 4096-Token Sequence:**
   $$4096 \times 114,688 = \mathbf{469,762,048\text{ bytes}} = \mathbf{448.0\text{ MiB}} \approx \mathbf{0.4698\text{ GB}}$$
-* **Available KV Memory & Theoretical Concurrency Ceiling:**
-  * Usable VRAM: $24.0\text{ GB} \times 0.92 = 22.08\text{ GB}$
-  * Minus Model Weights: $4.2\text{B} \times 2 = 8.40\text{ GB}$
-  * Minus Runtime Overhead: $1.60\text{ GB}$
-  * Available KV Cache Memory: $22.08 - 8.40 - 1.60 = \mathbf{12.08\text{ GB}}$ ($12,960.5\text{ MiB}$ in binary GiB)
-  * **Theoretical Maximum Concurrency (4096 tokens):** $\frac{12.08\text{ GB}}{0.4698\text{ GB}} = \mathbf{25.7\text{ sequences}}$ (decimal) to $\mathbf{28.9\text{ sequences}}$ (binary).
-* **Reconciling the 0.93 Logged Utilization at Batch 24:**
-  At batch 24, memory demand is $24 \times 0.4698\text{ GB} = 11.274\text{ GB}$. Expressed as a fraction of the allocated $12.08\text{ GB}$ pool: $\frac{11.274}{12.080} = \mathbf{0.933} \approx \mathbf{0.93}$.
+* **Available KV Memory & Theoretical Capacity:**
+  * Usable VRAM (decimal): $24.0\text{ GB} \times 0.92 = 22.08\text{ GB}$
+  * Minus Model Weights ($8.40\text{ GB}$) and Overhead ($1.60\text{ GB}$) = $\mathbf{12.08\text{ GB}}$ ($12,960.5\text{ MiB}$ binary)
+  * **Theoretical Maximum Concurrency (4096 tokens):** $\frac{12.08\text{ GB}}{0.4698\text{ GB}} = \mathbf{25.71\text{ sequences}}$ (decimal) to $\mathbf{28.93\text{ sequences}}$ (binary).
+  * **Empirical Implied Capacity:** $\frac{24}{0.93} \approx \mathbf{25.81\text{ sequences}}$, directly reconciling the logged 0.93 utilization at batch 24.
 
 ---
 
@@ -115,7 +110,7 @@ Because Kannada is agglutinative, expressing 997 sentences in only 15,430 words 
 
 From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
 
-| Batch Size | Wall Time ($s$) | `reported_tok_s` | Total Throughput (tok/s) | Gen Goodput (tok/s) | Decode Rate from ITL (tok/s) | TTFT p50 ($ms$) | ITL p50 ($ms$) | p95 E2E ($ms$) | Preempted Seqs | KV Util |
+| Batch Size | Wall Time ($s$) | `reported_tok_s` | Total Tok/s | Gen Goodput (tok/s) | Decode Rate from ITL (tok/s) | TTFT p50 ($ms$) | ITL p50 ($ms$) | p95 E2E ($ms$) | Preempted Seqs | KV Util |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | **4** | 28.98 | 565.4 | 565.4 | 70.7 | 77.9 | 483.2 | 51.33 | 32,673.3 | 0 | 0.16 |
 | **8** | 36.30 | 902.6 | 902.7 | 112.8 | 128.5 | 519.0 | 62.26 | 39,982.9 | 0 | 0.31 |
@@ -124,23 +119,31 @@ From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
 | **32** | 94.71 | **1384.0** | **1383.9** | **173.0** | **314.4** | 636.9 | 101.79 | 97,465.7 | **7** | **0.97** |
 | **48** | 151.41 | **1298.5** | **1298.5** | **162.3** | **480.0** | 955.4 | 100.00 | 105,427.5 | **23** | **0.97** |
 
-* **Directly Observed Facts:** Throughput peaks at batch 24 ($1607.4\text{ tok/s}$) with 0 preemptions. At batch 32, KV cache saturates at 0.97, 7 sequences are preempted, and throughput drops. At batch 48, 23 sequences are preempted, TTFT nearly doubles to 955.4 ms, p95 latency exceeds 105 seconds, and throughput collapses to 1298.5 tok/s.
-* **Serving Mechanism Interpretation:** Preemption is directly observed in the log data. When concurrent sequence memory demand exceeds available KV cache capacity, the scheduler evicts blocks. Re-prefill / recomputation provides a plausible serving mechanism consistent with the observed rise in median TTFT and wall-clock duration.
+* **OBSERVED:** Throughput peaks at batch 24 ($1607.4\text{ tok/s}$) with 0 preemptions. At batch 32, KV cache saturates at 0.97 with 7 preemptions. At batch 48, 23 sequences are preempted, TTFT doubles to 955.4 ms, p95 latency exceeds 105 seconds, and throughput collapses to 1298.5 tok/s.
+* **INFERENCE:** When active sequences exceed KV cache capacity, the scheduler evicts blocks. Re-prefill provides a plausible serving mechanism consistent with the observed rise in median TTFT and wall-clock duration.
+* **PREDICTION:** If concurrency is capped at `max-num-seqs = 24`, processing 48 requests in two consecutive batches of 24 is projected as a first-order estimate to take $\approx 2 \times 61.16\text{s} = \mathbf{122.32\text{ s}}$, avoiding preemption thrashing ($151.41\text{ s}$).
 
 ---
 
-### B3 — Audit of the Misread Column & Goodput Analysis
-* **The Misread Column:** `reported_tok_s` ($= \frac{N \times (P+G)}{W}$). It includes parallel prefill tokens ($P=3584$).
-* **Batch 24 Goodput:**
-  * **Exact Wall-Clock Goodput:** $\frac{24 \times 512\text{ tokens}}{61.16\text{ s}} = \mathbf{200.92\text{ tok/s}}$.
-  * **Decode-Phase Rate from ITL:** $\frac{24}{0.09607\text{ s}} = \mathbf{249.82\text{ decode tok/s}}$.
-  * *Distinction:* Decode rate measures instantaneous decode iterations; end-to-end goodput includes prefill time and runtime tail overhead. The dataset does not provide separate prefill/decode duration counters for a second exact independent E2E derivation.
+### B3 — Audit of the Misread Column & Two Independent Goodput Derivations
+
+* **The Misread Column:** `reported_tok_s` ($= \frac{N \times (P+G)}{W}$). It includes compute-bound prefill tokens ($P=3584$).
+
+#### Two Independent Derivations of Batch-24 Goodput ($P=3584, G=512, N=24, W=61.16\text{s}$):
+1. **Method 1 (Direct Output Volume / Wall Clock):**
+   $$\text{Goodput}_{\text{Method 1}} = \frac{24 \times 512\text{ tokens}}{61.16\text{ s}} = \mathbf{200.916\text{ tok/s}} \approx \mathbf{200.92\text{ tok/s}}$$
+2. **Method 2 (Reported Throughput × Generated-Token Fraction):**
+   $$\text{Goodput}_{\text{Method 2}} = 1607.4 \times \left(\frac{512}{3584 + 512}\right) = 1607.4 \times \left(\frac{512}{4096}\right) = \mathbf{200.925\text{ tok/s}} \approx \mathbf{200.93\text{ tok/s}}$$
+   *(The $0.01\text{ tok/s}$ difference is caused by 1-decimal rounding in logged `reported_tok_s`)*.
+
+#### Separate Diagnostic Metric:
+* **Median Decode-Phase Rate Estimate (from ITL):** $\frac{24}{0.09607\text{ s}} = \mathbf{249.82\text{ decode tok/s}}$. This measures instantaneous decode iteration rate only, excluding prefill time and engine overhead.
 
 ---
 
-### B4 — Production Serving Metric
-* **Recommended Metric:** **Sequence Preemption Count / Preemption Rate** (`vllm:num_preemptions_total`).
-* **Interpretation:** Under safe concurrency ($\le 24$ at 4096 context), preemptions remain **0**. Any preemption indicates that the serving scheduler could not keep all affected sequences resident under the current KV-cache/resource constraints and should be investigated alongside KV utilization and latency.
+### B4 — Single Recommended Production Validation Metric
+* **Recommended Metric:** **`num_preemptions_total`** (e.g. `vllm:num_preemptions_total`).
+* **Diagnostic Value:** Tests the preemption component of the hypothesis. Under healthy concurrency ($\le 24$), preemptions remain **0**. Under memory pressure, preemptions rise above $0$, directly signaling scheduler evictions.
 
 ---
 
@@ -158,7 +161,7 @@ From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
 | **DERIVED** | Total Available Reviewer Budget | $10\text{ h/week} \times 3\text{ weeks} = \mathbf{30\text{ reviewer-hours}}$ |
 | **DERIVED** | Total Available Compute Window | $2\text{ weeks} \times 7\text{ days} \times 24\text{ hours} = \mathbf{336\text{ GPU-hours}}$ |
 | **DERIVED** | Native Reviewer Coverage | Direct review covers 2 of 6 languages (Hindi/Kannada); 4 languages lack native review |
-| **ASSUMPTION** | Human Review Speed | 2.0 minutes per reviewed pair |
+| **ASSUMPTION** | Human Review Speed | 2.0 minutes per reviewed pair ($\sim 30\text{ pairs/hr}$) |
 | **ASSUMPTION** | Illustrative SFT Scenario | 1,000 synthetic pairs ($\rightarrow 33.3\text{ reviewer-hours}$) |
 | **ASSUMPTION** | Day-1 Test Set | 60 prompts ($30\text{ Hindi} + 30\text{ Kannada}$) across 3 iterations ($\rightarrow 6.0\text{ reviewer-hours}$) |
 | **ASSUMPTION** | Proposed Target / Kill Bars | Target: $\ge 70\%$ casual preference; Kill bar: $< 50\%$ preference on Day 7 |
@@ -172,9 +175,9 @@ From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
   1. *Immediate Testability:* Generates empirical feedback on Day 1 without committing GPU training upfront.
   2. *Zero Compute & Deployment Overhead:* Introduces no secondary model weights or pipeline latency.
   3. *Reviewer Feasibility:* Consumes only $\sim 6.0$ of the 30 available reviewer-hours, leaving 24 hours for final release audits.
-  4. *Evidence Before Commitment:* Preserves A100 training compute (up to 336 GPU-hours if scheduled for Weeks 2–3, or 168 GPU-hours if the 2-week window started on Day 1) if the Day-7 Kill Criterion triggers a pivot to SFT.
+  4. *Evidence Before Commitment:* Preserves A100 training compute (up to 336 GPU-hours if scheduled for Weeks 2–3, or 168 GPU-hours if active from Day 1) if the Day-7 Kill Criterion triggers a pivot to parameter-efficient SFT/LoRA.
 * **Primary Success Metric:** Casual-tone preference win-rate on blind paired evaluation with factual retention as guardrail.
-* **Proposed Kill Criterion:** If by Day 7 Option C achieves $< 50\%$ casual preference win-rate or $< 90\%$ factual accuracy, immediately pivot to Option A (SFT) for the remaining time on the A100.
+* **Proposed Kill Criterion:** If by Day 7 Option C achieves $< 50\%$ casual preference win-rate or $< 90\%$ factual accuracy, immediately pivot to Option A (SFT/LoRA) for the remaining time on the A100.
 * **Key Limitation:** The reviewer directly covers Hindi and Kannada only; Tamil, Telugu, Bengali, and Marathi lack direct native validation.
 
 ---

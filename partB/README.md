@@ -2,7 +2,7 @@
 
 ## 1. B1: Theoretical KV Cache Capacity Modeling & Reconciling with `kv_cache_util`
 
-### Model & Hardware Parameters ([`bench/model_spec.md`](bench/model_spec.md))
+### Model & Hardware Parameters ([bench/model_spec.md](bench/model_spec.md))
 * **Model:** `FLM-4B-Instruct` (4.2B parameters, 28 layers, $d_{\text{model}}=3072$)
 * **Attention Configuration:** 24 Query heads, 8 KV heads (Grouped-Query Attention / GQA), head dimension $d_k = 128$
 * **Data Types / Precision:** fp16 model weights ($2\text{ bytes/param}$), fp16 KV cache ($2\text{ bytes/element}$)
@@ -45,21 +45,22 @@ $$\text{KV memory per sequence} = 4096\text{ tokens} \times 114,688\text{ bytes/
 ### Reconciling Theoretical Capacity with Logged `kv_cache_util`
 
 1. **What is the Denominator of `kv_cache_util`?**
-   Per [`bench/model_spec.md`](bench/model_spec.md), `kv_cache_util` measures the *peak KV cache block utilization* during the run. Its denominator is the **total number of KV cache blocks pre-allocated into the GPU memory pool by the serving engine at initialization**.
-2. **Deriving the 0.93 Value at Batch 24:**
+   Per [bench/model_spec.md](bench/model_spec.md), `kv_cache_util` measures the *peak KV cache block utilization* during the run. Its denominator is the **total number of KV cache blocks pre-allocated into the GPU memory pool by the serving engine at initialization**.
+2. **Empirical Implied Capacity vs. Theoretical Capacity:**
    * At Batch 24, all 24 requests run to the full context of $4096\text{ tokens}$ ($3584\text{ prompt} + 512\text{ gen}$), requiring $24 \times 469,762,048\text{ bytes} = \mathbf{11.274\text{ GB}}$ of active KV cache.
    * Under the decimal KV cache memory budget of $\mathbf{12.08\text{ GB}}$:
      $$\text{Predicted KV Cache Utilization} = \frac{11.274\text{ GB}}{12.080\text{ GB}} = \mathbf{0.9333} \approx \mathbf{0.93}$$
-   * The observed `kv_cache_util` of **0.93** in `bench_log.csv` is in close agreement with the decimal memory budget allocated from the specification ($24\text{ GB} \times 0.92 - \text{weights} - \text{overhead} = 12.08\text{ GB}$).
-3. **What Happens at Batch 32 and Batch 48?**
-   * At Batch 32, memory demand is $32 \times 0.4698\text{ GB} = \mathbf{15.03\text{ GB}}$, which exceeds the allocated $12.08\text{ GB}$ buffer ($124.4\%$ of capacity). The block pool saturates at **0.97** (its internal threshold), forcing the scheduler to preempt **7 sequences**.
-   * At Batch 48, memory demand is $48 \times 0.4698\text{ GB} = \mathbf{22.55\text{ GB}}$ ($186.7\%$ of capacity). The pool saturates at **0.97**, forcing **23 preemptions**.
+   * The **empirical implied capacity** from the logged run is $\frac{24}{0.93} \approx \mathbf{25.81\text{ sequences}}$, which aligns closely with the theoretical decimal upper bound ($25.71\text{ sequences}$).
+3. **What the Benchmark Records at Batch 32 and Batch 48:**
+   * At Batch 32, memory demand is $32 \times 0.4698\text{ GB} = \mathbf{15.03\text{ GB}}$ ($124.4\%$ of capacity). The block pool saturates at **0.97**, and the benchmark logs **7 preemptions**.
+   * At Batch 48, memory demand is $48 \times 0.4698\text{ GB} = \mathbf{22.55\text{ GB}}$ ($186.7\%$ of capacity). The pool saturates at **0.97**, and the benchmark logs **23 preemptions**.
+   * *Note on Evidence Discipline:* The benchmark explicitly records 7 and 23 preemptions. The capacity calculation demonstrates that capacity was exceeded, but does not mathematically predict those exact eviction counts.
 
 ---
 
 ## 2. B2: Benchmark Reconciliation & Throughput Anomaly Analysis
 
-### Full Data from [`bench/bench_log.csv`](bench/bench_log.csv) (Prompt=3584, Gen=512, Total=4096 tokens)
+### Full Data from [bench/bench_log.csv](bench/bench_log.csv) (Prompt=3584, Gen=512, Total=4096 tokens)
 
 | Batch Size | Wall Time ($s$) | `reported_tok_s` | Total Tok/s | Gen Goodput (tok/s) | Decode Rate from ITL (tok/s) | TTFT p50 ($ms$) | ITL p50 ($ms$) | p95 E2E ($ms$) | Preempted Seqs | KV Util |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -72,19 +73,21 @@ $$\text{KV memory per sequence} = 4096\text{ tokens} \times 114,688\text{ bytes/
 
 ---
 
-### Mechanism of the Anomaly (Direct Evidence vs. Serving Mechanism Interpretation)
+### Mechanism of the Anomaly (Observed vs. Inference vs. Prediction)
 
-* **Directly Observed Facts in CSV:**
-  1. Concurrency scaled stably from batch 4 to batch 24 with $0$ preemptions.
+* **OBSERVED (Directly from CSV):**
+  1. Concurrency scaled stably from batch 4 to batch 24 with $0$ preemptions and rising throughput ($565.4 \rightarrow 1607.4\text{ tok/s}$).
   2. At batch 32, `kv_cache_util` saturated at **0.97**, **7 sequences were preempted**, and reported throughput dropped to $1384.0\text{ tok/s}$.
   3. At batch 48, **23 sequences were preempted**, wall-clock time increased to $151.41\text{ s}$, median TTFT nearly doubled ($500.5\text{ ms} \rightarrow 955.4\text{ ms}$), p95 latency reached $105.4\text{ s}$, and reported throughput dropped to $1298.5\text{ tok/s}$.
-* **Serving Mechanism Interpretation:**
-  * Preemption is directly observed in the log data. When active sequence memory demand exceeds available KV cache capacity, the serving engine's scheduler preempts requests and evicts their blocks.
-  * In standard paged-attention architectures, re-prefill/recomputation provides a plausible serving mechanism consistent with the observed throughput and latency degradation, as re-processing evicted prompt tokens on resumption matches the observed sharp rise in median TTFT ($500\text{ ms} \rightarrow 955\text{ ms}$) and total wall-clock duration.
+* **INFERENCE (Serving Mechanism):**
+  * Preemption is directly observed. When active sequence memory demand exceeds available KV cache capacity, the scheduler preempts requests and evicts their blocks.
+  * In standard paged-attention architectures, re-prefill/recomputation provides a plausible serving mechanism consistent with the observed throughput and latency degradation, as re-processing evicted prompt tokens on resumption matches the observed rise in median TTFT ($500\text{ ms} \rightarrow 955\text{ ms}$) and total wall-clock duration.
+* **PREDICTION (Batch Limiting Proposal):**
+  * If a serving system limits concurrency to `max-num-seqs = 24`, processing 48 requests in two consecutive batches of 24 is projected as a first-order estimate to take $\approx 2 \times 61.16\text{s} = \mathbf{122.32\text{ seconds}}$, improving upon the measured thrashing duration of $151.41\text{ s}$.
 
 ---
 
-## 3. B3: Audit of the Misread Column & Goodput Analysis
+## 3. B3: Audit of the Misread Column & Two Independent Goodput Derivations
 
 ### The Misread Column: `reported_tok_s`
 
@@ -97,46 +100,36 @@ $$\text{KV memory per sequence} = 4096\text{ tokens} \times 114,688\text{ bytes/
 
 ---
 
-### Goodput Analysis for Batch 24 ($P=3584, G=512, N=24, W=61.16\text{s}, \text{ITL}=96.07\text{ms}$)
+### Two Independent Derivations of Batch-24 Goodput ($P=3584, G=512, N=24, W=61.16\text{s}$)
 
-1. **Exact End-to-End Wall-Clock Goodput:**
-   $$\text{Goodput}_{\text{e2e}} = \frac{\text{num\_requests} \times \text{gen\_len}}{\text{wall\_clock\_s}} = \frac{24 \times 512\text{ tokens}}{61.16\text{ s}} = \mathbf{200.92\text{ tok/s}}$$
+#### **Method 1: Direct Generation Volume over Wall-Clock Duration**
+$$\text{Goodput}_{\text{Method 1}} = \frac{N \times G}{W} = \frac{24 \times 512\text{ tokens}}{61.16\text{ seconds}} = \frac{12,288}{61.16} = \mathbf{200.916\text{ tok/s}} \approx \mathbf{200.92\text{ tok/s}}$$
 
-2. **Decode-Phase Generation Rate from ITL:**
-   During the active generation phase, 24 tokens are emitted across the batch every $\text{ITL} = 96.07\text{ ms} = 0.09607\text{ s}$:
-   $$\text{Rate}_{\text{decode}} = \frac{\text{Batch Size}}{\text{ITL}_{\text{seconds}}} = \frac{24}{0.09607\text{ s}} = \mathbf{249.82\text{ decode tok/s}}$$
+#### **Method 2: Reported Throughput Scaled by Generated-Token Fraction**
+$$\text{Goodput}_{\text{Method 2}} = \text{reported\_tok\_s} \times \left(\frac{G}{P + G}\right) = 1607.4 \times \left(\frac{512}{3584 + 512}\right) = 1607.4 \times \left(\frac{512}{4096}\right) = \mathbf{200.925\text{ tok/s}} \approx \mathbf{200.93\text{ tok/s}}$$
+*(Explanation: The $0.01\text{ tok/s}$ difference between Method 1 and Method 2 is entirely caused by the 1-decimal rounding in the logged `reported_tok_s` value: $1607.4$ vs. unrounded $1607.325\text{ tok/s}$).*
 
-3. **Why Decode-Phase Rate Differs from End-to-End Goodput:**
-   * $\text{Rate}_{\text{decode}} = 249.82\text{ tok/s}$ measures the instantaneous token emission rate strictly during the iterative decode loop.
-   * $\text{Goodput}_{\text{e2e}} = 200.92\text{ tok/s}$ accounts for the complete end-to-end request duration, including the initial prompt prefill phase ($\text{TTFT} \approx 500\text{ ms}$), CUDA kernel dispatch, and batch tail completion.
-4. **Data Limitation Regarding a Second Exact E2E Derivation:**
-   * The benchmark CSV records aggregate wall-clock time and median per-step latency (p50 TTFT, p50 ITL), but does not log separate dedicated timers for total prefill wall-clock duration versus total decode wall-clock duration.
-   * Therefore, only one exact end-to-end wall-clock goodput value ($\mathbf{200.92\text{ tok/s}}$) can be directly calculated from the provided dataset.
+#### **Separate Metric: Median Decode-Phase Rate Estimate (from ITL)**
+During the active generation phase, 24 tokens are emitted across the batch every $\text{ITL} = 96.07\text{ ms} = 0.09607\text{ s}$:
+$$\text{Rate}_{\text{decode}} = \frac{\text{Batch Size}}{\text{ITL}_{\text{seconds}}} = \frac{24}{0.09607\text{ s}} = \mathbf{249.82\text{ decode tok/s}}$$
+*Distinction:* This measures instantaneous generation speed during the memory-bound decode iterations only, excluding prompt prefill latency ($\text{TTFT} \approx 500\text{ ms}$) and engine overhead. It is not an end-to-end goodput derivation.
 
 ---
 
-## 4. B4: Recommended Production Validation Metric
+## 4. B4: Single Recommended Production Validation Metric
 
-* **Recommended Metric:** **Sequence Preemption Count / Preemption Rate** (e.g. `vllm:num_preemptions_total` or `preempted_requests / total_requests`).
-* **Why It Validates the Explanation:** Directly tracks whether live concurrent requests exceed physical KV cache memory capacity, triggering scheduler evictions.
-* **Expected Pattern:** Under healthy operating concurrency ($\le 24$ at 4096 context), preemptions remain **$0$**. Any preemption indicates that the serving scheduler could not keep all affected sequences resident under the current KV-cache/resource constraints and should be investigated alongside KV utilization and latency.
-
----
-
-## 5. Summary of Assumptions & Limitations
-
-1. **Estimated Upper Bound:** The 25–28 sequence limit is an estimated theoretical upper bound under nominal 24 GB hardware parameters; actual runtime limits depend on internal block paging granularity (e.g. 16 vs 32 tokens per block) and driver memory overhead.
-2. **Fixed Request Profile:** The load test submits all requests simultaneously with identical prompt and generation lengths. Production traffic features variable sequence lengths and staggered arrival times.
-3. **KV Cache Precision:** Assumes fp16 KV cache ($2\text{ bytes/element}$).
+* **Recommended Metric:** **`num_preemptions_total`** (e.g. Prometheus / vLLM metric `vllm:num_preemptions_total`).
+* **Why It Is Diagnostic:** Directly tests the preemption component of the hypothesis. Under healthy concurrency ($\le 24$ at 4096 context), preemptions remain **$0$**. Under memory pressure, preemptions rise above $0$, directly signaling that the scheduler is unable to keep all sequences resident in the KV cache block pool.
+* **Limitation:** The counter validates the occurrence of scheduler evictions; it does not by itself capture subsequent queue delay or recomputation latency, which should be monitored alongside TTFT and p95 E2E latency.
 
 ---
 
-## 6. Reproduction Commands
+## 5. Reproduction Commands
 
 ```powershell
-# Run theoretical capacity modeling & reconciliation
+# Run theoretical KV cache capacity derivation
 python partB/analysis/capacity_analysis.py
 
-# Run benchmark CSV forensic analysis
+# Run benchmark log forensic analysis
 python partB/analysis/benchmark_analysis.py
 ```
