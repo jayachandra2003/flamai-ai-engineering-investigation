@@ -4,7 +4,9 @@
 
 | Category / Hypothesis | Code Location | Pre-Audit Assumption / Baseline | Post-Audit Empirical Finding | Status | Impact / Evidence-Based Assessment |
 |---|---|---|---|:---:|---|
-| **Tokenizer Model Mismatch** | `fertility.py:79`, `REPORT_v0.md:8` | Tested only GPT-2 (50k vocab, English-centric 2019 model) and concluded Hindi is inherently 6× more expensive for any tokenizer. | GPT-2 tokenization is an established implementation, but using it to make production FLM-4B routing/cost claims is unsupported because `model_spec.md` specifies a 128k vocabulary. Across benchmarked tokenizers on FLORES-200, Hindi token expansion ranges from 7.45× (GPT-2) down to 2.53× (LLaMA-3 128k) and 1.26× (XLM-R 250k). | **CONFIRMED** | **MAJOR METHODOLOGICAL FLAW: tokenizer mismatch.** The observed expansion is strongly tokenizer-dependent and cannot be attributed solely to the script. |
+| Category / Hypothesis | Code Location | Pre-Audit Assumption / Baseline | Post-Audit Empirical Finding | Status | Impact / Evidence-Based Assessment |
+|---|---|---|---|:---:|---|
+| **Methodology / Report Interpretation (Tokenizer Mismatch)** | `REPORT_v0.md:8`, `fertility.py:79` | Tested only GPT-2 (50k vocab, English-centric) and concluded Hindi is inherently 6× more expensive for any tokenizer. | `fertility.py` defaults to GPT-2. The unsupported leap occurred in `REPORT_v0.md` when interpreting GPT-2 evidence as a production-general finding for FLM-4B (128k vocab). On FLORES-200, Hindi expansion ranges from 7.45× (GPT-2) down to 2.53× (LLaMA-3 128k) and 1.26× (XLM-R 250k). | **CONFIRMED** | **METHODOLOGY / INTERPRETATION ISSUE.** Token expansion is strongly tokenizer-dependent. Public tokenizers demonstrate vocabulary scaling but are not direct measurements of proprietary FLM-4B. |
 | **Conceptual Metric Distortion (Dravidian Agglutination)** | `fertility.py:64`, `REPORT_v0.md:10` | Assumed `tokens / whitespace_words` is an adequate proxy for inference cost. | Dravidian languages (Kannada, Telugu) are agglutinative (~15.5 words/sent vs 21.0 for English). On XLM-R, Kannada fertility is 1.85× English ($2.57 / 1.38$), while its total token count for the same parallel text is 1.37× English ($39,602 / 28,995$). | **CONFIRMED** | **Conceptual Metric Flaw.** Whitespace-word fertility distorts cross-lingual comparisons between analytic and agglutinative languages. |
 | **Whitespace Splitting Implementation** | `fertility.py:62` | `line.split(" ")` creates empty strings on multiple spaces. | Under sample corpora containing double spaces, deflated fertility by 1.4% to 2.0%. On clean FLORES-200, effect is minor (+0.0% to +0.04% for eng/hin, +3.6% for kan). | **CONFIRMED** | **Implementation Flaw.** Exists in code, but magnitude on cleaned text is minor. |
 | **Lowercasing Preprocessing** | `fertility.py:60` | `line.lower()` applied to avoid casing noise. | Has negligible (0.01%) effect on Devanagari/Kannada/Telugu, while changing English tokenization and reducing measured English token count by 3.58% in this corpus. | **CONFIRMED** | **Implementation Asymmetry.** Distorts English token counts slightly while having negligible effect on Indic scripts. |
@@ -15,83 +17,90 @@
 
 ## 2. Detailed Audit of Confirmed Issues
 
-### Issue 1: Tokenizer Selection Mismatch
-* **Hypothesis:** Benchmarking GPT-2 (50k English-centric vocabulary) does not reflect modern multilingual tokenizers or the 128k vocabulary size specified for FLM-4B in [`bench/model_spec.md`](bench/model_spec.md).
-* **Experiment:** Tokenize the 997 parallel sentences of [`partA/corpus/`](partA/corpus/) across four distinct tokenizers:
-  1. `gpt2` (50,257 vocab, baseline)
-  2. `NousResearch/Meta-Llama-3-8B` (128,000 vocab, representative 128k BPE)
-  3. `Qwen/Qwen2.5-7B` (151,643 vocab, modern multilingual BPE)
-  4. `xlm-roberta-base` (250,002 vocab, multilingual SentencePiece)
-* **Before Values (GPT-2 on FLORES-200):**
-  * English: 25,741 tokens (fertility: 1.23 tok/word, 0.206 tok/char)
-  * Hindi: 191,828 tokens (fertility: 7.80 tok/word, 1.529 tok/char) $\rightarrow$ **7.45× tokens vs. English**
-  * Kannada: 349,772 tokens (fertility: 22.67 tok/word, 2.655 tok/char) $\rightarrow$ **13.59× tokens vs. English**
-  * Telugu: 335,642 tokens (fertility: 20.48 tok/word, 2.639 tok/char) $\rightarrow$ **13.04× tokens vs. English**
-* **After Values (Representative Comparison Tokenizers on FLORES-200):**
-  * **LLaMA-3 (128k):** Hindi total tokens = 65,361 (**2.53× vs. Eng**; fertility 2.66 vs. 1.23)
-  * **Qwen 2.5 (152k):** Hindi total tokens = 116,701 (**4.45× vs. Eng**; fertility 4.74 vs. 1.25)
-  * **XLM-RoBERTa (250k):** Hindi total tokens = 36,634 (**1.26× vs. Eng**; fertility 1.49 vs. 1.38)
-* **Percentage Change / Token Reduction relative to GPT-2:**
-  * Hindi token count drops from 191,828 (GPT-2) to 65,361 (LLaMA-3, **-65.9%**) and 36,634 (XLM-R, **-80.9%**).
-* **Conclusion:** The claim in `REPORT_v0.md` that Hindi fertility is an immutable property of the script is not supported. Hindi token expansion is strongly tokenizer-dependent.
-* **Limitations:** These comparison tokenizers illustrate vocabulary scaling effects but do not measure the proprietary FLM-4B tokenizer directly unless its specific tokenizer files are evaluated.
+### Issue 1: Tokenizer Selection & Interpretation Mismatch
+* **Location:** `REPORT_v0.md:8` (and `fertility.py:79` default setting)
+* **Classification:** Methodology / Report Interpretation Issue (not a code defect in `fertility.py`, which accurately executes GPT-2 tokenization).
+* **Exact Command:** `python partA/audit/run_audit.py`
+* **Before Value (GPT-2 on 997 FLORES-200 parallel sentences):**
+  * English: 25,741 tokens
+  * Hindi: 191,828 tokens (**7.45× vs. Eng**; fertility 7.80 vs. 1.23)
+  * Kannada: 349,772 tokens (**13.59× vs. Eng**; fertility 22.67 vs. 1.23)
+  * Telugu: 335,642 tokens (**13.04× vs. Eng**; fertility 20.48 vs. 1.23)
+* **After Value (Representative 128k LLaMA-3 Tokenizer on same corpus):**
+  * English: 25,792 tokens
+  * Hindi: 65,361 tokens (**2.53× vs. Eng**; fertility 2.66 vs. 1.23)
+  * Kannada: 229,014 tokens (**8.88× vs. Eng**; fertility 14.84 vs. 1.23)
+  * Telugu: 215,433 tokens (**8.35× vs. Eng**; fertility 13.15 vs. 1.23)
+* **Absolute Delta (Hindi Tokens):** $191,828 - 65,361 = \mathbf{-126,467\text{ tokens}}$
+* **Relative Delta / Token Reduction:** $\frac{-126467}{191828} = \mathbf{-65.93\%}$
+* **Direction of Distortion:** Massively inflated apparent Indic token requirements under the legacy 50k GPT-2 tokenizer.
+* **Why It Matters:** The intern's report treated GPT-2 results as an inherent linguistic property of Hindi, claiming a universal 6×–7× cost. In reality, expanding vocabulary to 128k reduces Hindi expansion to 2.53×. Public tokenizers illustrate vocabulary scaling but do not directly measure the proprietary FLM-4B tokenizer.
 
 ---
 
 ### Issue 2: Conceptual Metric Flaw in `tokens / whitespace_words`
-* **Hypothesis:** Dividing token counts by whitespace-separated words creates an artificial penalty for agglutinative languages (e.g. Kannada, Telugu) relative to analytic languages (English).
-* **Experiment:** Compare whitespace word fertility ($\frac{\text{Tokens}}{\text{Words}}$) against the total token expansion ratio ($\frac{\text{Tokens}_{\text{lang}}}{\text{Tokens}_{\text{eng}}}$) on the 997 parallel FLORES-200 sentences.
-* **Measurements (XLM-RoBERTa on FLORES-200):**
-  * English: 20,954 words $\rightarrow$ 28,995 tokens (Fertility = 1.38)
-  * Kannada: 15,430 words $\rightarrow$ 39,602 tokens (Fertility = 2.57)
-* **Apparent Fertility Ratio:** $\frac{2.57}{1.38} = \mathbf{1.85\times}$ (appears 85% higher).
-* **Actual Total Token Ratio for Same Content:** $\frac{39,602}{28,995} = \mathbf{1.37\times}$ (only 37% higher).
-* **Conclusion:** Token count is a more direct proxy for token-based inference payload than tokens-per-whitespace-word. Actual serving cost and latency also depend on model architecture, batching, hardware, and serving runtime behavior.
-* **Limitations:** Total token count on parallel text controls for content, but production traffic mixes languages and domain distributions differently than benchmark corpora.
+* **Location:** `fertility.py:64`, `REPORT_v0.md:10`
+* **Classification:** Conceptual Metric Flaw (misleading denominator choice).
+* **Exact Command:** `python partA/corrected_fertility.py`
+* **Before Value (XLM-RoBERTa Whitespace Fertility Ratio vs. English):**
+  * English: $1.3837\text{ tok/word}$ ($28,995\text{ tokens} / 20,954\text{ words}$)
+  * Kannada: $2.5666\text{ tok/word}$ ($39,602\text{ tokens} / 15,430\text{ words}$)
+  * Apparent Fertility Ratio: $\frac{2.5666}{1.3837} = \mathbf{1.8548\times}$ (+85.5% vs. Eng)
+* **After Value (XLM-RoBERTa Total Parallel Token Expansion Ratio vs. English):**
+  * Actual Total Token Ratio: $\frac{39,602}{28,995} = \mathbf{1.3658\times}$ (+36.6% vs. Eng)
+* **Absolute Delta (Ratio Inflation):** $1.8548 - 1.3658 = \mathbf{+0.4890}$
+* **Relative Delta:** $\frac{1.8548 - 1.3658}{1.3658} = \mathbf{+35.80\%}$
+* **Direction of Distortion:** Artificially penalizes agglutinative languages where multiple morphemes fuse into fewer whitespace-separated words.
+* **Why It Matters:** Kannada expresses the same semantic content in 26.4% fewer whitespace words ($15,430$ vs. $20,954$). Dividing by words creates an artificial +35.8% penalty unrelated to actual sequence length or inference memory demand.
 
 ---
 
 ### Issue 3: Whitespace Splitting Implementation (`line.split(" ")` vs `line.split()`)
-* **Hypothesis:** `line.split(" ")` treats consecutive spaces as empty word tokens `""`, artificially deflating fertility.
-* **Experiment:** Compare `line.split(" ")` against `line.split()` across starter samples and FLORES-200.
-* **Starter Corpus Measurements:**
-  * English: `1.2652` $\rightarrow$ `1.2831` (+0.0179, **+1.41%**)
-  * Hindi: `7.4485` $\rightarrow$ `7.5985` (+0.1500, **+2.01%**)
-* **FLORES-200 Measurements:**
-  * English: `1.2825` $\rightarrow$ `1.2826` (+0.00%)
-  * Hindi: `7.8232` $\rightarrow$ `7.8260` (+0.04%)
-  * Kannada: `22.1483` $\rightarrow$ `22.9456` (+0.7973, **+3.60%**)
-  * Telugu: `20.3995` $\rightarrow$ `20.6243` (+0.2249, **+1.10%**)
-* **Conclusion:** `line.split(" ")` is an implementation flaw that alters word counts when multiple spaces exist. On sanitized corpora, its aggregate impact is minor.
-* **Limitations:** Only affects lines with consecutive whitespace characters.
+* **Location:** `fertility.py:62`
+* **Classification:** Code Implementation Bug.
+* **Exact Command:** `python partA/audit/run_audit.py`
+* **Before Value (`split(" ")` on starter samples):**
+  * English sample: `1.2652 tok/word`
+  * Hindi sample: `7.4485 tok/word`
+* **After Value (`split()` on starter samples):**
+  * English sample: `1.2831 tok/word`
+  * Hindi sample: `7.5985 tok/word`
+* **Absolute Delta:** English = $+0.0179$, Hindi = $+0.1500$
+* **Relative Delta:** English = $\mathbf{+1.41\%}$, Hindi = $\mathbf{+2.01\%}$
+* **Direction of Distortion:** Deflated fertility on texts containing multiple consecutive spaces by creating empty string `""` pseudo-words.
+* **Why It Matters:** Unsanitized text with varying whitespace generates inaccurate word counts. While the effect on cleaned parallel corpora is small (+0.04% on FLORES-200 Hindi), `str.split()` is standard Python for whitespace tokenization.
 
 ---
 
 ### Issue 4: Lowercasing Transformation Asymmetry
-* **Hypothesis:** Lowercasing before tokenization modifies English token counts by breaking uppercase subwords while having zero effect on native Indic scripts.
-* **Experiment:** Measure token counts and fertility with `line.lower()` versus original case across 997 FLORES-200 sentences.
-* **Measurements (GPT-2):**
-  * English: 26,696 tokens (Lower) $\rightarrow$ 25,741 tokens (Cased) [**-955 tokens, -3.58%**]
-  * Hindi: 191,842 tokens (Lower) $\rightarrow$ 191,828 tokens (Cased) [**-14 tokens, -0.01%**]
-  * Kannada: 349,802 tokens (Lower) $\rightarrow$ 349,772 tokens (Cased) [**-30 tokens, -0.01%**]
-  * Telugu: 335,737 tokens (Lower) $\rightarrow$ 335,642 tokens (Cased) [**-95 tokens, -0.03%**]
-* **Measurements (LLaMA-3):**
-  * English: 26,311 tokens (Lower) $\rightarrow$ 25,792 tokens (Cased) [**-519 tokens, -1.97%**]
-  * Hindi: 65,363 tokens (Lower) $\rightarrow$ 65,361 tokens (Cased) [**-2 tokens, -0.00%**]
-* **Conclusion:** Lowercasing changes English tokenization and reduces the measured English token count by 3.58% in this corpus, while having negligible effect on Hindi. This introduces a minor asymmetry into relative fertility comparisons.
-* **Limitations:** Effect size on English depends on the frequency of acronyms and proper nouns in the evaluation text.
+* **Location:** `fertility.py:60`
+* **Classification:** Preprocessing Implementation Asymmetry.
+* **Exact Command:** `python partA/audit/run_audit.py`
+* **Before Value (Cased text under GPT-2 on 997 FLORES-200 sentences):**
+  * English: 25,741 tokens
+  * Hindi: 191,828 tokens
+* **After Value (Lowercased text `line.lower()` under GPT-2):**
+  * English: 26,696 tokens
+  * Hindi: 191,842 tokens
+* **Absolute Delta:** English = $\mathbf{+955\text{ tokens}}$ (+3.71% when lowercasing), Hindi = $\mathbf{+14\text{ tokens}}$ (+0.01%)
+* **Relative Delta:** Lowercasing reduces measured cased English token count by $\mathbf{-3.58\%}$ relative to lowercased text ($\frac{25741 - 26696}{26696} = -3.58\%$).
+* **Direction of Distortion:** Changes English tokenization by breaking uppercase acronyms while having negligible effect on Indic scripts.
+* **Why It Matters:** Lowercasing introduces a one-sided distortion in cross-lingual comparisons against non-cased scripts like Devanagari, Kannada, and Telugu.
 
 ---
 
 ### Issue 5: Macro-Average vs. Micro-Average Aggregation
-* **Hypothesis:** Arithmetic mean of line-level ratios ($\frac{1}{N}\sum \frac{T_i}{W_i}$) differs from global corpus ratio ($\frac{\sum T_i}{\sum W_i}$).
-* **Measurements (LLaMA-3 on FLORES-200):**
-  * English: Macro `1.2395` vs. Micro `1.2309` [**-0.0086, -0.70%**]
-  * Hindi: Macro `2.6667` vs. Micro `2.6562` [**-0.0105, -0.39%**]
-  * Kannada: Macro `15.0359` vs. Micro `14.8421` [**-0.1938, -1.29%**]
-  * Telugu: Macro `13.2431` vs. Micro `13.1458` [**-0.0973, -0.73%**]
-* **Conclusion:** The difference between macro- and micro-average is minor ($<1.3\%$) on sentence-length text, though micro-average is mathematically preferable for modeling total token throughput.
-* **Limitations:** Macro-averaging can produce larger variance on corpora with high sentence-length dispersion.
+* **Location:** `fertility.py:67`
+* **Classification:** Methodological Aggregation Difference.
+* **Exact Command:** `python partA/audit/run_audit.py`
+* **Before Value (Macro-Average $\frac{1}{N}\sum \frac{T_i}{W_i}$ on LLaMA-3, 997 FLORES-200 sentences):**
+  * English: `1.2395` | Hindi: `2.6667` | Kannada: `15.0359` | Telugu: `13.2431`
+* **After Value (Micro-Average $\frac{\sum T_i}{\sum W_i}$ on LLaMA-3):**
+  * English: `1.2309` | Hindi: `2.6562` | Kannada: `14.8421` | Telugu: `13.1458`
+* **Absolute Delta:** English = $-0.0086$, Hindi = $-0.0105$, Kannada = $-0.1938$, Telugu = $-0.0973$
+* **Relative Delta:** English = $\mathbf{-0.70\%}$, Hindi = $\mathbf{-0.39\%}$, Kannada = $\mathbf{-1.29\%}$, Telugu = $\mathbf{-0.73\%}$
+* **Direction of Distortion:** Macro-averaging slightly overweights short sentences with atypical token/word ratios.
+* **Why It Matters:** Macro- and micro-averaging estimate different quantities. Micro-averaging (aggregate ratio) is mathematically appropriate for estimating global serving token volume.
 
 ---
 

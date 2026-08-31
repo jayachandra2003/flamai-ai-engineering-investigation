@@ -66,7 +66,7 @@ This repository contains the complete forensic audit and corrected engineering a
 
 ## Reproducibility Guide
 
-All scripts are completely self-contained and executable using standard Python 3.11+:
+The repository contains the analysis code, benchmark data, corpus artifacts, and generated results. Reproducing the tokenizer experiments additionally requires access to the referenced pretrained tokenizer resources and the pinned Python dependencies (Python 3.11+):
 
 ```powershell
 # 1. Prepare and validate the parallel multilingual evaluation corpus (Part A1)

@@ -148,7 +148,7 @@ From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
 ---
 
 ### B4 — Single Recommended Production Validation Metric
-* **Recommended Metric:** **`num_preemptions_total`** (e.g. `vllm:num_preemptions_total`).
+* **Recommended Metric:** Serving-stack sequence preemption count/rate (e.g. `vllm:num_preemptions_total` in a vLLM deployment).
 * **Diagnostic Value:** Tests the preemption component of the hypothesis. In the tested configurations up to batch 24, preemptions were 0. Under higher tested concurrency, preemptions increased to 7 at batch 32 and 23 at batch 48.
 
 ---
@@ -182,7 +182,7 @@ From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
   2. *Zero Compute & Deployment Overhead:* Introduces no secondary model weights or pipeline latency.
   3. *Reviewer Feasibility:* Consumes only $\sim 6.0$ of the 30 available reviewer-hours, leaving 24 hours for final release audits.
   4. *Evidence Before Commitment:* Preserves A100 training compute if the Day-7 Kill Criterion triggers a pivot to parameter-efficient SFT/LoRA.
-* **Primary Success Metric:** Casual-tone preference win-rate on blind paired evaluation with factual retention as guardrail.
+* **Primary Success Metric:** Casual-tone preference win-rate on blind paired evaluation (candidate wins / non-tied comparisons, ties reported separately) with factual retention as guardrail.
 * **Three-Way Decision Framework:**
   * **SHIP:** Casual preference $\ge 70\%$ AND factual retention $\ge 95\%$.
   * **PIVOT (Kill Bar):** Casual preference $< 50\%$ OR factual retention $< 90\%$.

@@ -31,9 +31,9 @@ Concise, interview-ready answers for the 30-minute technical defense of "The Aud
 
 ### 8. Why these denominators?
 * **Answer:**
-  * **Tokens / Whitespace Word:** Standard NLP metric, but severely distorts agglutinative languages (+35.8% for Kannada).
+  * **Tokens / Whitespace Word:** Standard NLP metric, but distorts agglutinative languages where Kannada has 26.4% fewer words ($15,430$ vs $20,954$), creating a +35.8% denominator multiplier.
   * **Tokens / Unicode Character:** Measures code points, but ignores that Indic matras are separate scalar values.
-  * **Tokens / Grapheme Cluster:** Measures tokenization density per Unicode extended grapheme cluster.
+  * **Tokens / Grapheme Cluster:** Measures tokenization density per Unicode extended grapheme cluster (`regex` `\X`).
   * **Tokens / UTF-8 Byte:** Useful secondary diagnostic for byte-level BPE compression efficiency relative to raw text representation.
   * **Tokens / Parallel Sentence (Relative Token Expansion):** Content-controlled primary metric for true serving cost.
 
@@ -77,7 +77,7 @@ Concise, interview-ready answers for the 30-minute technical defense of "The Aud
 * **Answer:** $249.82\text{ tok/s}$ ($\frac{24}{0.09607\text{ s}}$) is the **median decode-phase rate estimate** derived from ITL. It only measures instantaneous token emission during the active decode loop, ignoring the ~500ms prefill phase and engine dispatch overhead.
 
 ### 18. What single metric confirms B2?
-* **Answer:** **`num_preemptions_total`** directly measures sequence preemptions; an increase alongside KV-cache saturation would support the hypothesis that memory pressure is causing scheduler evictions.
+* **Answer:** Serving-stack sequence preemption count/rate is the recommended production metric. In a vLLM deployment, this corresponds to a metric such as **`vllm:num_preemptions_total`** (or `num_preemptions_total`). It directly measures sequence preemptions; an increase alongside KV-cache saturation would support the hypothesis that memory pressure is causing scheduler evictions.
 
 ### 19. Why Path C (Prompt Engineering)?
 * **Answer:**
@@ -87,7 +87,7 @@ Concise, interview-ready answers for the 30-minute technical defense of "The Aud
   4. *Reversible:* Preserves A100 compute for SFT if the Day-7 kill criterion triggers a pivot.
 
 ### 20. What is the success threshold?
-* **Answer:** A three-way decision framework:
+* **Answer:** A three-way decision framework (converting reviewer pairs to candidate win, baseline win, or tie; preference win-rate = candidate wins / non-tied comparisons):
   * **SHIP:** Casual preference $\ge \mathbf{70\%}$ AND factual retention $\ge \mathbf{95\%}$ on blind paired evaluation by the native reviewer.
   * **PIVOT:** Casual preference $< \mathbf{50\%}$ OR factual retention $< \mathbf{90\%}$.
   * **CONTINUE / ITERATE:** Any intermediate result between those boundaries.

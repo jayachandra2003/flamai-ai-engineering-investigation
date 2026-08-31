@@ -28,7 +28,7 @@
 * **Arithmetic:** Reviewing 1,000 synthetic pairs requires $\frac{1000 \times 2.0}{60} = 33.3\text{ hours}$, exceeding the entire 30-hour reviewer budget without evaluating trained models. In contrast, prompt engineering consumes only $6.0\text{ hours}$ ($20\%$ of budget), leaving 24 hours for final validation.
 
 ## Success Metric, Thresholds & Kill Criterion
-* **Metric:** Blind side-by-side preference win-rate ($P_{\text{casual}}$) on Hindi and Kannada with factual accuracy retention ($P_{\text{correct}}$) as a hard guardrail.
+* **Metric:** Blind side-by-side preference win-rate ($P_{\text{casual}}$) on Hindi and Kannada with factual accuracy retention ($P_{\text{correct}}$) as a hard guardrail. For each baseline-vs-candidate pair, convert the reviewer judgment into candidate win, baseline win, or tie. Preference win-rate is candidate wins divided by non-tied comparisons (ties reported separately).
 * **Three-Way Decision Framework:**
   * **SHIP:** Casual preference $\ge 70\%$ AND factual retention $\ge 95\%$.
   * **PIVOT (Kill Bar):** Casual preference $< 50\%$ OR factual retention $< 90\%$.
@@ -39,7 +39,7 @@
 
 ## Day-1 Experiment & Decision Logic
 * **Setup:** Compare baseline formal prompt vs. conversational system prompt on FLM-4B across 30 Hindi and 30 Kannada prompts (60 pairs).
-* **Execution:** Measure blind reviewer preference (1–3 scale) and token count delta ($\Delta G$).
+* **Execution:** Measure blind reviewer preference (candidate win / baseline win / tie) and token count delta ($\Delta G$).
 * **Why Not Strongest Alternative (Option A):** SFT incurs upfront data curation and training overhead before validating if prompting suffices. Prompt engineering provides immediate empirical signal while preserving the A100 allocation for an escalation path.
 * **Key Limitation:** The native reviewer covers Hindi and Kannada only; Tamil, Telugu, Bengali, and Marathi cannot receive native-speaker validation prior to launch without additional reviewer capacity.
 

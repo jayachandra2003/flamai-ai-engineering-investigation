@@ -13,7 +13,7 @@
   * **GPT-2 (50k vocab):** Hindi requires **7.45×** total tokens relative to English ($191,828$ vs. $25,741$ tokens).
   * **LLaMA-3 (128k vocab, matching FLM-4B scale):** Hindi token expansion drops to **2.53×** ($65,361$ tokens).
   * **XLM-RoBERTa (250k vocab):** Hindi token expansion drops to **1.26×** ($36,634$ tokens).
-* **FACT (Morphological Distortion in Whitespace Fertility):** Whitespace-word fertility ($\text{tokens} / \text{word}$) distorts cross-language cost comparisons for agglutinative Dravidian languages. On XLM-RoBERTa, Kannada exhibits a fertility ratio of **1.85×** English ($2.57$ vs. $1.38\text{ tok/word}$), yet its actual token footprint for the same parallel content is only **1.37×** English ($39,602$ vs. $28,995$ tokens) because Kannada expresses equivalent semantics in 36% fewer whitespace-delimited words ($15,430$ vs. $20,954$).
+* **FACT (Morphological Distortion in Whitespace Fertility):** Whitespace-word fertility ($\text{tokens} / \text{word}$) distorts cross-language cost comparisons for agglutinative Dravidian languages. On XLM-RoBERTa, Kannada exhibits a fertility ratio of **1.85×** English ($2.57$ vs. $1.38\text{ tok/word}$), yet its actual token footprint for the same parallel content is only **1.37×** English ($39,602$ vs. $28,995$ tokens) because Kannada expresses equivalent semantics in **26.4% fewer whitespace-delimited words** ($15,430$ vs. $20,954$, creating an artificial $\frac{20954}{15430} - 1 = \mathbf{+35.8\%}$ denominator multiplier).
 
 ---
 

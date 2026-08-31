@@ -120,7 +120,7 @@ $$\text{Rate}_{\text{decode}} = \frac{\text{Batch Size}}{\text{ITL}_{\text{secon
 
 ## 4. B4: Single Recommended Production Validation Metric
 
-* **Recommended Metric:** **`num_preemptions_total`** (e.g. Prometheus / vLLM metric `vllm:num_preemptions_total`).
+* **Recommended Metric:** Serving-stack sequence preemption count/rate is the recommended production metric. In a vLLM deployment, this corresponds to a metric such as **`vllm:num_preemptions_total`** (or `num_preemptions_total`).
 * **Why It Is Diagnostic:** Directly tests the preemption component of the hypothesis. In the tested configurations up to batch 24, preemptions were 0. Under higher tested concurrency, preemptions increased to 7 at batch 32 and 23 at batch 48.
 * **Limitation:** The counter validates the occurrence of scheduler evictions; it does not by itself capture subsequent queue delay or recomputation latency, which should be monitored alongside TTFT and p95 E2E latency.
 
