@@ -58,7 +58,7 @@
 ## Kill Criterion
 
 > **KILL CRITERION (Proposed Decision Threshold):** If by **Day 7 (end of Week 1)**, after iterating on at least 4 prompt engineering variants across Hindi and Kannada, Option C achieves $< \mathbf{50\%}$ casual preference win-rate OR drops below $\mathbf{90\%}$ factual accuracy:
-> **Immediately terminate Option C and commit the remaining 14 days (336 GPU-hours) of A100 compute to Option A (Synthetic SFT).**
+> **Immediately terminate Option C and commit the remaining available A100 compute allocation (up to 336 GPU-hours if scheduled for Weeks 2–3, or 168 GPU-hours if active from Day 1) to Option A (Synthetic SFT).**
 
 ---
 
@@ -75,7 +75,7 @@
 ## Why Not the Strongest Alternative?
 
 * **Strongest Alternative: Option A (Synthetic SFT)**.
-* **Rejection Rationale:** SFT introduces upfront training risk and data curation overhead before establishing whether prompt engineering can achieve the desired tone. Starting with prompt engineering provides empirical evidence on Day 1 while preserving all 336 GPU-hours on the A100 if a pivot is required on Day 7.
+* **Rejection Rationale:** SFT introduces upfront training risk and data curation overhead before establishing whether prompt engineering can achieve the desired tone. Starting with prompt engineering provides empirical evidence on Day 1 while preserving available A100 compute if an SFT pivot is required on Day 7.
 
 ---
 

@@ -172,9 +172,9 @@ From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
   1. *Immediate Testability:* Generates empirical feedback on Day 1 without committing GPU training upfront.
   2. *Zero Compute & Deployment Overhead:* Introduces no secondary model weights or pipeline latency.
   3. *Reviewer Feasibility:* Consumes only $\sim 6.0$ of the 30 available reviewer-hours, leaving 24 hours for final release audits.
-  4. *Evidence Before Commitment:* Preserves all 336 A100 GPU-hours if the Day-7 Kill Criterion triggers a pivot to SFT.
+  4. *Evidence Before Commitment:* Preserves A100 training compute (up to 336 GPU-hours if scheduled for Weeks 2–3, or 168 GPU-hours if the 2-week window started on Day 1) if the Day-7 Kill Criterion triggers a pivot to SFT.
 * **Primary Success Metric:** Casual-tone preference win-rate on blind paired evaluation with factual retention as guardrail.
-* **Proposed Kill Criterion:** If by Day 7 Option C achieves $< 50\%$ casual preference win-rate or $< 90\%$ factual accuracy, immediately pivot to Option A (SFT) for the remaining 14 days on the A100.
+* **Proposed Kill Criterion:** If by Day 7 Option C achieves $< 50\%$ casual preference win-rate or $< 90\%$ factual accuracy, immediately pivot to Option A (SFT) for the remaining time on the A100.
 * **Key Limitation:** The reviewer directly covers Hindi and Kannada only; Tamil, Telugu, Bengali, and Marathi lack direct native validation.
 
 ---
