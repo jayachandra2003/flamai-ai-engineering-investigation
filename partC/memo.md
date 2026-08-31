@@ -27,12 +27,13 @@
 
 * **Arithmetic:** Reviewing 1,000 synthetic pairs requires $\frac{1000 \times 2.0}{60} = 33.3\text{ hours}$, exceeding the entire 30-hour reviewer budget without evaluating trained models. In contrast, prompt engineering consumes only $6.0\text{ hours}$ ($20\%$ of budget), leaving 24 hours for final validation.
 
----
-
 ## Success Metric, Thresholds & Kill Criterion
 * **Metric:** Blind side-by-side preference win-rate ($P_{\text{casual}}$) on Hindi and Kannada with factual accuracy retention ($P_{\text{correct}}$) as a hard guardrail.
-* **Proposed Target Threshold:** $\ge 70\%$ casual preference over baseline with $\ge 95\%$ factual retention.
-* **Kill Criterion:** If Option C fails the Day-7 criterion ($< 50\%$ casual preference or $< 95\%$ accuracy), begin the Option A feasibility/pilot work using the remaining available A100 allocation, subject to confirming that the remaining compute window is still available.
+* **Three-Way Decision Framework:**
+  * **SHIP:** Casual preference $\ge 70\%$ AND factual retention $\ge 95\%$.
+  * **PIVOT (Kill Bar):** Casual preference $< 50\%$ OR factual retention $< 90\%$.
+  * **CONTINUE / ITERATE:** Any intermediate result between those boundaries.
+* **Kill Criterion Action:** If Option C fails the Day-7 criterion, begin the Option A feasibility/pilot work using the remaining available A100 allocation, subject to confirming that the remaining compute window is still available.
 
 ---
 
@@ -45,4 +46,4 @@
 ---
 
 ## Final Decision
-Deploy **Option C** on Day 1. If Day-7 preference is $< 50\%$, pivot to Option A using the remaining available A100 window.
+Deploy Option C on Day 1. If Day-7 preference is <50% OR factual retention is <90%, pivot to Option A using the remaining available A100 allocation, subject to confirming that the remaining compute window is still available.

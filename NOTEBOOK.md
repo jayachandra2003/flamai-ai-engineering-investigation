@@ -166,7 +166,7 @@ From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
 | **ASSUMPTION** | Human Review Speed | 2.0 minutes per reviewed pair ($\sim 30\text{ pairs/hr}$) |
 | **ASSUMPTION** | Illustrative SFT Scenario | 1,000 synthetic pairs ($\rightarrow 33.3\text{ reviewer-hours}$) |
 | **ASSUMPTION** | Day-1 Test Set | 60 prompts ($30\text{ Hindi} + 30\text{ Kannada}$) across 3 iterations ($\rightarrow 6.0\text{ reviewer-hours}$) |
-| **ASSUMPTION** | Proposed Target / Kill Bars | Target: $\ge 70\%$ casual preference; Kill bar: $< 50\%$ preference on Day 7 |
+| **ASSUMPTION** | Proposed Decision Framework | **SHIP:** $\ge 70\%$ pref AND $\ge 95\%$ retention; **PIVOT:** $< 50\%$ pref OR $< 90\%$ retention |
 
 ---
 
@@ -177,9 +177,13 @@ From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
   1. *Immediate Testability:* Generates empirical feedback on Day 1 without committing GPU training upfront.
   2. *Zero Compute & Deployment Overhead:* Introduces no secondary model weights or pipeline latency.
   3. *Reviewer Feasibility:* Consumes only $\sim 6.0$ of the 30 available reviewer-hours, leaving 24 hours for final release audits.
-  4. *Evidence Before Commitment:* Preserves A100 training compute (up to 336 GPU-hours if scheduled for Weeks 2–3, or 168 GPU-hours if active from Day 1) if the Day-7 Kill Criterion triggers a pivot to parameter-efficient SFT/LoRA.
+  4. *Evidence Before Commitment:* Preserves A100 training compute if the Day-7 Kill Criterion triggers a pivot to parameter-efficient SFT/LoRA.
 * **Primary Success Metric:** Casual-tone preference win-rate on blind paired evaluation with factual retention as guardrail.
-* **Proposed Kill Criterion:** If Option C fails the Day-7 criterion, begin the Option A feasibility/pilot work using the remaining available A100 allocation, subject to confirming that the remaining compute window is still available.
+* **Three-Way Decision Framework:**
+  * **SHIP:** Casual preference $\ge 70\%$ AND factual retention $\ge 95\%$.
+  * **PIVOT (Kill Bar):** Casual preference $< 50\%$ OR factual retention $< 90\%$.
+  * **CONTINUE / ITERATE:** Any intermediate result between those boundaries.
+* **Kill Criterion Action:** If Option C fails the Day-7 criterion (preference $< 50\%$ OR factual retention $< 90\%$), begin the Option A feasibility/pilot work using the remaining available A100 allocation, subject to confirming that the remaining compute window is still available.
 * **Key Limitation:** The reviewer directly covers Hindi and Kannada only; Tamil, Telugu, Bengali, and Marathi lack direct native validation.
 
 ---

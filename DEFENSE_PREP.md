@@ -33,14 +33,14 @@ Concise, interview-ready answers for the 30-minute technical defense of "The Aud
 * **Answer:**
   * **Tokens / Whitespace Word:** Standard NLP metric, but severely distorts agglutinative languages (+35.8% for Kannada).
   * **Tokens / Unicode Character:** Measures code points, but ignores that Indic matras are separate scalar values.
-  * **Tokens / Grapheme Cluster:** Measures user-perceived typographical units (aksharas: base consonant + combining marks), providing a script-normalized visual density metric.
+  * **Tokens / Grapheme Cluster:** Measures tokenization density per Unicode extended grapheme cluster.
   * **Tokens / UTF-8 Byte:** Useful secondary diagnostic for byte-level BPE compression efficiency relative to raw text representation.
   * **Tokens / Parallel Sentence (Relative Token Expansion):** Content-controlled primary metric for true serving cost.
 
 ### 9. Why tokens per parallel sentence? What is a grapheme?
 * **Answer:**
   * *Tokens / Parallel Sentence:* For an aligned parallel corpus, tokens per parallel sentence is the most directly interpretable denominator because the same underlying semantic information is held constant across all languages.
-  * *Grapheme:* An extended grapheme cluster is computed via the Unicode standard segmentation algorithm (`regex.findall(r"\X", text)`), which groups base characters with all following combining marks into a single user-perceived typographical unit.
+  * *Grapheme:* A grapheme cluster here means a Unicode extended grapheme cluster produced by Unicode grapheme-cluster segmentation (`regex.findall(r"\X", text)`). It is not synonymous with an orthographic syllable or with an Indic akshara in every case.
 
 ### 10. Recalculate KV bytes per token.
 * **Answer:**
@@ -60,7 +60,7 @@ Concise, interview-ready answers for the 30-minute technical defense of "The Aud
 * **Answer:** At batch 24, logged `kv_cache_util` is 0.93 with 0 preemptions. The empirical implied capacity is $\frac{24}{0.93} \approx \mathbf{25.81\text{ sequences}}$, reconciling the modeled KV utilization with the logged 0.93 value at batch 24.
 
 ### 14. Explain B2 throughput collapse.
-* **Answer:** At batch 32, memory demand ($15.03\text{ GB}$) exceeds available KV cache ($12.08\text{ GB}$), triggering 7 preemptions. At batch 48, memory demand ($22.55\text{ GB}$) causes 23 preemptions. Evicted sequences must recompute their prompt tokens (re-prefill), doubling median TTFT ($500.5\text{ ms} \rightarrow 955.4\text{ ms}$) and causing throughput to collapse from $1607.4$ to $1298.5\text{ tok/s}$.
+* **Answer:** The CSV directly shows KV pressure, preemptions, higher TTFT, and worse throughput. Re-prefill/recomputation is a plausible mechanism consistent with the observed degradation, but the supplied telemetry does not directly measure the recomputed-token count.
 
 ### 15. What is the misread `REPORT_v0.md` column?
 * **Answer:** `reported_tok_s`. It measures total tokens processed per second ($\frac{N \times (P+G)}{W}$), combining parallel prefill with serial decode. The intern mistook this for generation serving throughput and falsely claimed longer prompts improve throughput.
@@ -87,10 +87,13 @@ Concise, interview-ready answers for the 30-minute technical defense of "The Aud
   4. *Reversible:* Preserves A100 compute for SFT if the Day-7 kill criterion triggers a pivot.
 
 ### 20. What is the success threshold?
-* **Answer:** A proposed decision assumption of $\ge \mathbf{70\%}$ preference win-rate for casual tone over baseline, with $\ge \mathbf{95\%}$ factual retention on blind paired evaluation by the native reviewer.
+* **Answer:** A three-way decision framework:
+  * **SHIP:** Casual preference $\ge \mathbf{70\%}$ AND factual retention $\ge \mathbf{95\%}$ on blind paired evaluation by the native reviewer.
+  * **PIVOT:** Casual preference $< \mathbf{50\%}$ OR factual retention $< \mathbf{90\%}$.
+  * **CONTINUE / ITERATE:** Any intermediate result between those boundaries.
 
 ### 21. What is the kill criterion?
-* **Answer:** If Option C fails the Day-7 criterion (e.g. $< 50\%$ casual preference or $< 90\%$ factual accuracy), begin the Option A feasibility/pilot work using the remaining available A100 allocation, subject to confirming that the remaining compute window is still available.
+* **Answer:** If Option C fails the Day-7 criterion (preference $< 50\%$ OR factual retention $< 90\%$), begin the Option A feasibility/pilot work using the remaining available A100 allocation, subject to confirming that the remaining compute window is still available.
 
 ### 22. What did AI get wrong during this investigation?
 * **Answer:**
