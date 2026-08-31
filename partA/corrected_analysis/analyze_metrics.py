@@ -16,6 +16,7 @@ import os
 import sys
 import json
 import unicodedata
+import regex
 import tiktoken
 from transformers import AutoTokenizer
 
@@ -29,6 +30,10 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 
 LANGS = ["eng", "hin", "kan", "tel"]
 CORPUS_FILES = {lang: os.path.join(CORPUS_DIR, f"{lang}.txt") for lang in LANGS}
+
+
+def count_graphemes(text):
+    return len(regex.findall(r"\X", text))
 
 
 def load_corpus():
@@ -86,7 +91,7 @@ def analyze_all(corpus, tokenizers):
     for lang, lines in corpus.items():
         words_split = sum(len(l.split()) for l in lines)
         chars = sum(len(l) for l in lines)
-        graphemes = sum(sum(1 for c in l if unicodedata.category(c) not in ('Mn', 'Me')) for l in lines)
+        graphemes = sum(count_graphemes(l) for l in lines)
         bytes_utf8 = sum(len(l.encode("utf-8")) for l in lines)
         full_results["corpus_stats"][lang] = {
             "lines": len(lines),
@@ -128,7 +133,7 @@ def analyze_all(corpus, tokenizers):
                 n_toks = len(toks)
                 w = len(l.split())
                 c = len(l)
-                g = sum(1 for ch in l if unicodedata.category(ch) not in ('Mn', 'Me'))
+                g = count_graphemes(l)
                 b = len(l.encode("utf-8"))
 
                 line_token_counts.append(n_toks)

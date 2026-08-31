@@ -26,19 +26,20 @@ $$\text{KV memory per sequence} = 4096\text{ tokens} \times 114,688\text{ bytes/
 ### Understanding the Estimated KV Cache Budget & `kv_cache_util`
 
 #### **Decimal GB vs. Binary GiB Conventions:**
-1. **Decimal Budget Modeling ($1\text{ GB} = 10^9\text{ bytes}$):**
+1. **Primary Decimal Budget Modeling ($1\text{ GB} = 10^9\text{ bytes}$):**
    * Usable VRAM Budget: $24.0\text{ GB} \times 0.92 = 22.08\text{ GB}$
    * Model Weights (fp16): $4.2 \times 10^9\text{ params} \times 2\text{ bytes} = 8.40\text{ GB}$
    * Non-KV Runtime Overhead: $1.60\text{ GB}$
    * **Available KV Cache Budget:** $22.08 - 8.40 - 1.60 = \mathbf{12.08\text{ GB}}$ ($12.08 \times 10^9\text{ bytes}$)
-   * **Theoretical Max Concurrency:** $\frac{12.08 \times 10^9\text{ bytes}}{469,762,048\text{ bytes}} = \mathbf{25.71\text{ sequences}}$
+   * **Theoretical Max Concurrency:** $\frac{12.08 \times 10^9\text{ bytes}}{469,762,048\text{ bytes}} = \mathbf{25.72\text{ sequences}}$
 
-2. **Binary GiB Budget Modeling ($1\text{ GiB} = 1024^3\text{ bytes}$):**
+2. **Binary Sensitivity Case ($1\text{ GiB} = 1024^3\text{ bytes}$):**
    * Usable VRAM Budget: $24.0\text{ GiB} \times 0.92 = 22.08\text{ GiB}$ ($22,609.9\text{ MiB}$)
    * Model Weights (fp16): $8.40\times 10^9\text{ bytes} = 7.823\text{ GiB}$ ($8,011.0\text{ MiB}$)
    * Non-KV Overhead: $1.600\text{ GiB}$ ($1,638.4\text{ MiB}$)
    * **Available KV Cache Budget:** $22.08 - 7.823 - 1.600 = \mathbf{12.657\text{ GiB}}$ ($12,960.5\text{ MiB}$)
    * **Theoretical Max Concurrency:** $\frac{12,960.5\text{ MiB}}{448.0\text{ MiB}} = \mathbf{28.93\text{ sequences}}$
+   *(This is a sensitivity calculation; the primary result uses the supplied 24 GB specification).*
 
 ---
 
@@ -49,8 +50,9 @@ $$\text{KV memory per sequence} = 4096\text{ tokens} \times 114,688\text{ bytes/
 2. **Empirical Implied Capacity vs. Theoretical Capacity:**
    * At Batch 24, all 24 requests run to the full context of $4096\text{ tokens}$ ($3584\text{ prompt} + 512\text{ gen}$), requiring $24 \times 469,762,048\text{ bytes} = \mathbf{11.274\text{ GB}}$ of active KV cache.
    * Under the decimal KV cache memory budget of $\mathbf{12.08\text{ GB}}$:
-     $$\text{Predicted KV Cache Utilization} = \frac{11.274\text{ GB}}{12.080\text{ GB}} = \mathbf{0.9333} \approx \mathbf{0.93}$$
-   * The **empirical implied capacity** from the logged run is $\frac{24}{0.93} \approx \mathbf{25.81\text{ sequences}}$, which aligns closely with the theoretical decimal upper bound ($25.71\text{ sequences}$).
+     $$\text{Modeled KV Cache Utilization} = \frac{11.274\text{ GB}}{12.080\text{ GB}} = \mathbf{0.9333} \approx \mathbf{0.93}$$
+     Reconciled the modeled KV utilization with the logged 0.93 value at batch 24; the small difference is attributable to the rounding/representation of the logged utilization.
+   * The **empirical implied capacity** from the logged run is $\frac{24}{0.93} \approx \mathbf{25.81\text{ sequences}}$, which aligns closely with the theoretical decimal upper bound ($25.72\text{ sequences}$).
 3. **What the Benchmark Records at Batch 32 and Batch 48:**
    * At Batch 32, memory demand is $32 \times 0.4698\text{ GB} = \mathbf{15.03\text{ GB}}$ ($124.4\%$ of capacity). The block pool saturates at **0.97**, and the benchmark logs **7 preemptions**.
    * At Batch 48, memory demand is $48 \times 0.4698\text{ GB} = \mathbf{22.55\text{ GB}}$ ($186.7\%$ of capacity). The pool saturates at **0.97**, and the benchmark logs **23 preemptions**.

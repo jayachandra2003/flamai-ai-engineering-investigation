@@ -101,8 +101,10 @@ Controlled evaluation on 997 parallel FLORES-200 sentences across 4 tokenizers v
 * **Available KV Memory & Theoretical Capacity:**
   * Usable VRAM (decimal): $24.0\text{ GB} \times 0.92 = 22.08\text{ GB}$
   * Minus Model Weights ($8.40\text{ GB}$) and Overhead ($1.60\text{ GB}$) = $\mathbf{12.08\text{ GB}}$ ($12,960.5\text{ MiB}$ binary)
-  * **Theoretical Maximum Concurrency (4096 tokens):** $\frac{12.08\text{ GB}}{0.4698\text{ GB}} = \mathbf{25.71\text{ sequences}}$ (decimal) to $\mathbf{28.93\text{ sequences}}$ (binary).
-  * **Empirical Implied Capacity:** $\frac{24}{0.93} \approx \mathbf{25.81\text{ sequences}}$, directly reconciling the logged 0.93 utilization at batch 24.
+  * **Primary Theoretical Maximum Concurrency (4096 tokens):** $\frac{12.08\text{ GB}}{0.4698\text{ GB}} = \mathbf{25.72\text{ sequences}}$ (decimal model).
+  * **Binary Sensitivity Case:** Interpreting the nominal 24 GB figure as 24 GiB produces approximately $\mathbf{28.93\text{ sequences}}$. This is a sensitivity calculation; the primary result uses the supplied 24 GB specification.
+  * **Empirical Implied Capacity:** $\frac{24}{0.93} \approx \mathbf{25.81\text{ sequences}}$. Reconciled the modeled KV utilization with the logged 0.93 value at batch 24; the small difference is attributable to the rounding/representation of the logged utilization.
+  * **Empirical Safe Operating Point at Batch 24:** Batch 24 was the highest tested configuration with zero preemptions. The theoretical 4096-token capacity is approximately 25.72 sequences under the primary decimal model; batch 32 exceeded the modeled KV-cache budget and logged 7 preemptions.
 
 ---
 
