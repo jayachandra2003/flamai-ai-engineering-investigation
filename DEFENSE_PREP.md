@@ -13,8 +13,8 @@ Concise, interview-ready answers for the 30-minute technical defense of "The Aud
 ### 3. What is the actual `fertility.py` bug?
 * **Answer:** `line.split(" ")` at line 62. On multiple consecutive spaces, it produces empty string elements `""`, artificially inflating the word count denominator and deflating calculated fertility by 1.4%–2.0% on typical text. Using Python's default `line.split()` correctly handles arbitrary whitespace.
 
-### 4. Why is lowercasing a measurement distortion rather than universally a bug?
-* **Answer:** Devanagari and Dravidian scripts have no uppercase/lowercase distinction. Lowercasing changes English tokenization and reduces the measured English token count by 3.58% in this corpus, while having negligible effect on Hindi. It is a measurement distortion when benchmarking against case-preserved production text.
+### 4. Why is lowercasing a distortion?
+* **Answer:** Devanagari and Dravidian scripts have no uppercase/lowercase distinction. Lowercasing increases the measured English token count from 25,741 to 26,696 (+3.71%) in this corpus, while having negligible effect on Hindi (+0.01%). It is a measurement distortion when benchmarking against case-preserved production text.
 
 ### 5. Why is macro-averaging not mathematically wrong?
 * **Answer:** Macro-average ($\frac{1}{N}\sum \frac{T_i}{W_i}$) measures the expected fertility of an individual sentence. Aggregate micro-average ($\frac{\sum T_i}{\sum W_i}$) measures overall system token volume per word. Neither is mathematically wrong, but micro-average is the appropriate estimand for total infrastructure cost and capacity planning. On sentence data, they diverge by $<1.3\%$.

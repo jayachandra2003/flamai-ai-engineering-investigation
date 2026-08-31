@@ -6,10 +6,10 @@
 |---|---|---|---|:---:|---|
 | Category / Hypothesis | Code Location | Pre-Audit Assumption / Baseline | Post-Audit Empirical Finding | Status | Impact / Evidence-Based Assessment |
 |---|---|---|---|:---:|---|
-| **Methodology / Report Interpretation (Tokenizer Mismatch)** | `REPORT_v0.md:8`, `fertility.py:79` | Tested only GPT-2 (50k vocab, English-centric) and concluded Hindi is inherently 6× more expensive for any tokenizer. | `fertility.py` defaults to GPT-2. The unsupported leap occurred in `REPORT_v0.md` when interpreting GPT-2 evidence as a production-general finding for FLM-4B (128k vocab). On FLORES-200, Hindi expansion ranges from 7.45× (GPT-2) down to 2.53× (LLaMA-3 128k) and 1.26× (XLM-R 250k). | **CONFIRMED** | **METHODOLOGY / INTERPRETATION ISSUE.** Token expansion is strongly tokenizer-dependent. Public tokenizers demonstrate vocabulary scaling but are not direct measurements of proprietary FLM-4B. |
+| **Methodology / Report Interpretation (Tokenizer Mismatch)** | `REPORT_v0.md:8`, `fertility.py:79` | Tested only GPT-2 (50k vocab, English-centric) and concluded Hindi is inherently 6× more expensive for any tokenizer. | `fertility.py` defaults to GPT-2. The unsupported leap occurred in `REPORT_v0.md` when interpreting GPT-2 evidence as a production-general finding for FLM-4B (128k vocab). On FLORES-200, Hindi expansion ranges from 7.45× (GPT-2) down to 2.53× (LLaMA-3 128k) and 1.26× (XLM-R 250k). | **CONFIRMED** | **METHODOLOGY / INTERPRETATION ISSUE.** Token expansion is strongly tokenizer-dependent. Public tokenizer comparisons spanning different vocabulary scales and tokenizer designs demonstrate strong tokenizer dependence; they do not isolate vocabulary size as the sole causal factor. |
 | **Conceptual Metric Distortion (Dravidian Agglutination)** | `fertility.py:64`, `REPORT_v0.md:10` | Assumed `tokens / whitespace_words` is an adequate proxy for inference cost. | Dravidian languages (Kannada, Telugu) are agglutinative (~15.5 words/sent vs 21.0 for English). On XLM-R, Kannada fertility is 1.85× English ($2.57 / 1.38$), while its total token count for the same parallel text is 1.37× English ($39,602 / 28,995$). | **CONFIRMED** | **Conceptual Metric Flaw.** Whitespace-word fertility distorts cross-lingual comparisons between analytic and agglutinative languages. |
 | **Whitespace Splitting Implementation** | `fertility.py:62` | `line.split(" ")` creates empty strings on multiple spaces. | Under sample corpora containing double spaces, deflated fertility by 1.4% to 2.0%. On clean FLORES-200, effect is minor (+0.0% to +0.04% for eng/hin, +3.6% for kan). | **CONFIRMED** | **Implementation Flaw.** Exists in code, but magnitude on cleaned text is minor. |
-| **Lowercasing Preprocessing** | `fertility.py:60` | `line.lower()` applied to avoid casing noise. | Has negligible (0.01%) effect on Devanagari/Kannada/Telugu, while changing English tokenization and reducing measured English token count by 3.58% in this corpus. | **CONFIRMED** | **Implementation Asymmetry.** Distorts English token counts slightly while having negligible effect on Indic scripts. |
+| **Lowercasing Preprocessing** | `fertility.py:60` | `line.lower()` applied to avoid casing noise. | Increases measured English token count from 25,741 to 26,696 (+3.71%) in this corpus, while having negligible effect on Indic scripts (+0.01% on Hindi). | **CONFIRMED** | **Implementation Asymmetry.** Distorts English token counts slightly while having negligible effect on Indic scripts. |
 | **Macro vs Micro Aggregation** | `fertility.py:67` | Arithmetic mean of per-line ratios $\frac{1}{N}\sum \frac{T_i}{W_i}$ vs global ratio $\frac{\sum T_i}{\sum W_i}$. | Difference between macro- and micro-average across 997 sentences is $<1.3\%$ across all evaluated languages. | **CONFIRMED** | **Minor Methodological Difference.** Statistically minor on sentence-level corpora. |
 | **Suspicious-but-Correct Item (Unicode NFC)** | `fertility.py:49` | `unicodedata.normalize("NFC", line)` alters raw text representation. | Without NFC normalization (e.g. if text is in NFD decomposed format), Indic vowel matras decompose into separate code points, inflating byte-level token counts by up to +4.15% (Kannada). | **CONFIRMED CORRECT** | **Appropriate Preprocessing.** NFC canonical composition is standard practice for Indic text tokenization. |
 
@@ -21,6 +21,7 @@
 * **Location:** `REPORT_v0.md:8` (and `fertility.py:79` default setting)
 * **Classification:** Methodology / Report Interpretation Issue (not a code defect in `fertility.py`, which accurately executes GPT-2 tokenization).
 * **Exact Command:** `python partA/audit/run_audit.py`
+* **Result Artifact:** [`partA/audit/results/exp_E_tokenizers.json`](partA/audit/results/exp_E_tokenizers.json)
 * **Before Value (GPT-2 on 997 FLORES-200 parallel sentences):**
   * English: 25,741 tokens
   * Hindi: 191,828 tokens (**7.45× vs. Eng**; fertility 7.80 vs. 1.23)
@@ -34,7 +35,7 @@
 * **Absolute Delta (Hindi Tokens):** $191,828 - 65,361 = \mathbf{-126,467\text{ tokens}}$
 * **Relative Delta / Token Reduction:** $\frac{-126467}{191828} = \mathbf{-65.93\%}$
 * **Direction of Distortion:** Massively inflated apparent Indic token requirements under the legacy 50k GPT-2 tokenizer.
-* **Why It Matters:** The intern's report treated GPT-2 results as an inherent linguistic property of Hindi, claiming a universal 6×–7× cost. In reality, expanding vocabulary to 128k reduces Hindi expansion to 2.53×. Public tokenizers illustrate vocabulary scaling but do not directly measure the proprietary FLM-4B tokenizer.
+* **Why It Matters:** The intern's report treated GPT-2 results as an inherent linguistic property of Hindi, claiming a universal 6×–7× cost. In reality, expanding vocabulary to 128k reduces Hindi expansion to 2.53×. Public tokenizer comparisons spanning different vocabulary scales and tokenizer designs demonstrate strong tokenizer dependence; they do not isolate vocabulary size as the sole causal factor.
 
 ---
 
@@ -42,6 +43,7 @@
 * **Location:** `fertility.py:64`, `REPORT_v0.md:10`
 * **Classification:** Conceptual Metric Flaw (misleading denominator choice).
 * **Exact Command:** `python partA/corrected_fertility.py`
+* **Result Artifact:** [`partA/corrected_analysis/results/corrected_metrics.json`](partA/corrected_analysis/results/corrected_metrics.json)
 * **Before Value (XLM-RoBERTa Whitespace Fertility Ratio vs. English):**
   * English: $1.3837\text{ tok/word}$ ($28,995\text{ tokens} / 20,954\text{ words}$)
   * Kannada: $2.5666\text{ tok/word}$ ($39,602\text{ tokens} / 15,430\text{ words}$)
@@ -59,6 +61,7 @@
 * **Location:** `fertility.py:62`
 * **Classification:** Code Implementation Bug.
 * **Exact Command:** `python partA/audit/run_audit.py`
+* **Result Artifact:** [`partA/audit/results/exp_A_whitespace.json`](partA/audit/results/exp_A_whitespace.json)
 * **Before Value (`split(" ")` on starter samples):**
   * English sample: `1.2652 tok/word`
   * Hindi sample: `7.4485 tok/word`
@@ -76,15 +79,16 @@
 * **Location:** `fertility.py:60`
 * **Classification:** Preprocessing Implementation Asymmetry.
 * **Exact Command:** `python partA/audit/run_audit.py`
+* **Result Artifact:** [`partA/audit/results/exp_B_lowercasing.json`](partA/audit/results/exp_B_lowercasing.json)
 * **Before Value (Cased text under GPT-2 on 997 FLORES-200 sentences):**
   * English: 25,741 tokens
   * Hindi: 191,828 tokens
 * **After Value (Lowercased text `line.lower()` under GPT-2):**
   * English: 26,696 tokens
   * Hindi: 191,842 tokens
-* **Absolute Delta:** English = $\mathbf{+955\text{ tokens}}$ (+3.71% when lowercasing), Hindi = $\mathbf{+14\text{ tokens}}$ (+0.01%)
-* **Relative Delta:** Lowercasing reduces measured cased English token count by $\mathbf{-3.58\%}$ relative to lowercased text ($\frac{25741 - 26696}{26696} = -3.58\%$).
-* **Direction of Distortion:** Changes English tokenization by breaking uppercase acronyms while having negligible effect on Indic scripts.
+* **Absolute Delta:** English = $\mathbf{+955\text{ tokens}}$, Hindi = $\mathbf{+14\text{ tokens}}$
+* **Relative Delta:** Lowercasing increases the measured English token count from 25,741 to 26,696 ($\mathbf{+3.71\%}$) in this corpus, while having negligible effect on Hindi ($\mathbf{+0.01\%}$). (Reverse relative difference: $\frac{25741 - 26696}{26696} = \mathbf{-3.58\%}$).
+* **Direction of Distortion:** Lowercasing increases measured English token count while having negligible effect on Indic scripts.
 * **Why It Matters:** Lowercasing introduces a one-sided distortion in cross-lingual comparisons against non-cased scripts like Devanagari, Kannada, and Telugu.
 
 ---
@@ -93,6 +97,7 @@
 * **Location:** `fertility.py:67`
 * **Classification:** Methodological Aggregation Difference.
 * **Exact Command:** `python partA/audit/run_audit.py`
+* **Result Artifact:** [`partA/audit/results/exp_C_aggregation.json`](partA/audit/results/exp_C_aggregation.json)
 * **Before Value (Macro-Average $\frac{1}{N}\sum \frac{T_i}{W_i}$ on LLaMA-3, 997 FLORES-200 sentences):**
   * English: `1.2395` | Hindi: `2.6667` | Kannada: `15.0359` | Telugu: `13.2431`
 * **After Value (Micro-Average $\frac{\sum T_i}{\sum W_i}$ on LLaMA-3):**
@@ -108,6 +113,8 @@
 
 * **Hypothesis:** `unicodedata.normalize("NFC", line)` alters raw input strings and might distort tokenization benchmarks.
 * **Experiment:** Compare tokenization of NFC composed strings against NFD decomposed strings across 997 FLORES-200 sentences using GPT-2.
+* **Exact Command:** `python partA/audit/run_audit.py`
+* **Result Artifact:** [`partA/audit/results/exp_norm_unicode.json`](partA/audit/results/exp_norm_unicode.json)
 * **Measurements:**
   * English: 26,696 tokens (NFC) $\rightarrow$ 26,723 tokens (NFD) [**+27 tokens, +0.10%**]
   * Hindi: 191,842 tokens (NFC) $\rightarrow$ 191,846 tokens (NFD) [**+4 tokens, +0.00%**]

@@ -26,7 +26,7 @@
 
 ### 3. Key Caveats & Limitations
 
-* **CAVEAT (Production Tokenizer Identification):** The proprietary `FLM-4B-Instruct` tokenizer was not directly benchmarked because its tokenizer artifacts were not supplied in the starter kit. The measured ratios from LLaMA-3 (128k) and XLM-RoBERTa (250k) demonstrate vocabulary scaling behavior but do not represent exact FLM-4B production values.
+* **CAVEAT (Production Tokenizer Identification):** The proprietary `FLM-4B-Instruct` tokenizer was not directly benchmarked because its tokenizer artifacts were not supplied in the starter kit. Public tokenizer comparisons spanning different vocabulary scales and tokenizer designs demonstrate strong tokenizer dependence; they do not isolate vocabulary size as the sole causal factor, nor do they represent exact FLM-4B production values.
 * **CAVEAT (Serving Runtime Dynamics):** Token sequence expansion affects prompt prefill and generation decoding differently. End-to-end request latency, time-to-first-token (TTFT), and GPU memory saturation are governed by the prompt-to-generation token ratio, concurrent batch size, GQA attention efficiency, and L4 memory bandwidth (300 GB/s).
 
 ---

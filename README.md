@@ -92,6 +92,6 @@ python partC/analysis_scratch.py
 
 ## Limitations
 
-1. **Proprietary FLM-4B Tokenizer:** The exact tokenizer for `FLM-4B-Instruct` was not provided in the starter kit. Evaluated public models (`Meta-Llama-3-8B`, `Qwen2.5-7B`, `XLM-RoBERTa-base`) illustrate vocabulary scaling behavior but do not represent exact FLM-4B production values.
+1. **Proprietary FLM-4B Tokenizer:** The exact tokenizer for `FLM-4B-Instruct` was not provided in the starter kit. Public tokenizer comparisons spanning different vocabulary scales and tokenizer designs demonstrate strong tokenizer dependence; they do not isolate vocabulary size as the sole causal factor, nor do they represent exact FLM-4B production values.
 2. **Offline Token Expansion vs. Live Serving Latency:** Offline token counts establish sequence length multipliers; live serving latency (TTFT, ITL, p95 E2E) is heavily influenced by prompt-to-generation token ratios, batch scheduler dynamics, and hardware memory bandwidth.
 3. **Language Reviewer Coverage:** Direct native-speaker validation is strictly available for Hindi and Kannada (30 total reviewer-hours). Tamil, Telugu, Bengali, and Marathi lack direct native review under the current team configuration.

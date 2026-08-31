@@ -20,12 +20,12 @@
 
 ## Option Comparison & Arithmetic
 | Strategy | Compute Required | Reviewer Hours | Timeline Risk | Core Bottleneck |
-|---|:---:|:---:|:---:|---|
-| **A. Synthetic SFT** | $\le 336\text{ GPU-h}$ | $33.3\text{ h}$ (1k pairs) | High | Reviewer bottleneck; data bugs leave no pivot time |
-| **B. $\le 1\text{B}$ Rewriter** | $\le 336\text{ GPU-h}$ | High | High | Multi-model orchestration and serving latency overhead |
+|---|---|:---:|:---:|---|
+| **A. Synthetic SFT** | Exact compute requirement not measured; must fit within 336 GPU-h allocation | $33.3\text{ h}$ (1k pairs) | High | Reviewer bottleneck; data bugs leave no pivot time |
+| **B. $\le 1\text{B}$ Rewriter** | Exact compute requirement not measured; must fit within 336 GPU-h allocation | High | High | Multi-model orchestration and serving latency overhead |
 | **C. Prompt Engineering** | **0 GPU-h** | **$6.0\text{ h}$ ($20\%$)** | **Low** | **Zero training risk; immediate Day-1 empirical results** |
 
-* **Arithmetic:** Reviewing 1,000 synthetic pairs requires $\frac{1000 \times 2.0}{60} = 33.3\text{ hours}$, exceeding the entire 30-hour reviewer budget without evaluating trained models. In contrast, prompt engineering consumes only $6.0\text{ hours}$ ($20\%$ of budget), leaving 24 hours for final validation.
+* **Arithmetic (Reviewer Load Estimate):** Reviewing 1,000 synthetic pairs is estimated at $\frac{1000 \times 2.0}{60} = 33.3\text{ hours}$ (assuming 2.0 min/pair), exceeding the entire 30-hour reviewer budget without evaluating trained models. In contrast, prompt engineering is estimated to consume only $6.0\text{ hours}$ ($20\%$ of budget), leaving 24 hours for final validation.
 
 ## Success Metric, Thresholds & Kill Criterion
 * **Metric:** Blind side-by-side preference win-rate ($P_{\text{casual}}$) on Hindi and Kannada with factual accuracy retention ($P_{\text{correct}}$) as a hard guardrail. For each baseline-vs-candidate pair, convert the reviewer judgment into candidate win, baseline win, or tie. Preference win-rate is candidate wins divided by non-tied comparisons (ties reported separately).
