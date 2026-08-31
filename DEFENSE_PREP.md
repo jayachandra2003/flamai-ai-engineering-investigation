@@ -31,12 +31,16 @@ Concise, interview-ready answers for the 30-minute technical defense of "The Aud
 
 ### 8. Why these denominators?
 * **Answer:**
-  * **Tokens / Whitespace Word:** Standard NLP metric, but severely distorts agglutinative languages.
-  * **Tokens / UTF-8 Byte:** Useful secondary diagnostic for raw compression relative to byte representation.
-  * **Tokens / Parallel Sentence (Relative Token Expansion):** Content-controlled metric for true serving cost.
+  * **Tokens / Whitespace Word:** Standard NLP metric, but severely distorts agglutinative languages (+35.8% for Kannada).
+  * **Tokens / Unicode Character:** Measures code points, but ignores that Indic matras are separate scalar values.
+  * **Tokens / Grapheme Cluster:** Measures user-perceived typographical units (aksharas: base consonant + combining marks), providing a script-normalized visual density metric.
+  * **Tokens / UTF-8 Byte:** Useful secondary diagnostic for byte-level BPE compression efficiency relative to raw text representation.
+  * **Tokens / Parallel Sentence (Relative Token Expansion):** Content-controlled primary metric for true serving cost.
 
-### 9. Why tokens per parallel sentence?
-* **Answer:** For an aligned parallel corpus, tokens per parallel sentence is the most directly interpretable denominator because the same underlying semantic information is held constant across all languages.
+### 9. Why tokens per parallel sentence? What is a grapheme?
+* **Answer:**
+  * *Tokens / Parallel Sentence:* For an aligned parallel corpus, tokens per parallel sentence is the most directly interpretable denominator because the same underlying semantic information is held constant across all languages.
+  * *Grapheme:* An extended grapheme cluster is what a user perceives as a single character (e.g. consonant `क` + matra `ि` = `कि`, which is 2 Unicode code points but 1 grapheme cluster). Standard Python `len()` counts code points, not grapheme clusters.
 
 ### 10. Recalculate KV bytes per token.
 * **Answer:**

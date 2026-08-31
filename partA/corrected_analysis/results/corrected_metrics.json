@@ -14,36 +14,44 @@
       "lines": 997,
       "whitespace_words": 20954,
       "unicode_chars": 125194,
+      "grapheme_clusters": 125194,
       "utf8_bytes": 125290,
       "words_per_sentence": 21.02,
       "chars_per_sentence": 125.57,
+      "graphemes_per_sentence": 125.57,
       "bytes_per_char": 1.0
     },
     "hin": {
       "lines": 997,
       "whitespace_words": 24607,
       "unicode_chars": 125495,
+      "grapheme_clusters": 105803,
       "utf8_bytes": 322640,
       "words_per_sentence": 24.68,
       "chars_per_sentence": 125.87,
+      "graphemes_per_sentence": 106.12,
       "bytes_per_char": 2.57
     },
     "kan": {
       "lines": 997,
       "whitespace_words": 15430,
       "unicode_chars": 131749,
+      "grapheme_clusters": 107337,
       "utf8_bytes": 357408,
       "words_per_sentence": 15.48,
       "chars_per_sentence": 132.15,
+      "graphemes_per_sentence": 107.66,
       "bytes_per_char": 2.71
     },
     "tel": {
       "lines": 997,
       "whitespace_words": 16388,
       "unicode_chars": 127172,
+      "grapheme_clusters": 93800,
       "utf8_bytes": 338804,
       "words_per_sentence": 16.44,
       "chars_per_sentence": 127.55,
+      "graphemes_per_sentence": 94.08,
       "bytes_per_char": 2.66
     }
   },
@@ -59,11 +67,14 @@
           "micro_fertility_tok_per_word": 1.2285,
           "macro_tok_per_char": 0.2076,
           "micro_tok_per_char": 0.2056,
+          "macro_tok_per_grapheme": 0.2076,
+          "micro_tok_per_grapheme": 0.2056,
           "macro_tok_per_byte": 0.2074,
           "micro_tok_per_byte": 0.2055,
           "token_expansion_ratio_vs_eng": 1.0,
           "fertility_ratio_vs_eng": 1.0,
           "tok_per_char_ratio_vs_eng": 1.0,
+          "tok_per_grapheme_ratio_vs_eng": 1.0,
           "tok_per_byte_ratio_vs_eng": 1.0
         },
         "hin": {
@@ -72,11 +83,14 @@
           "micro_fertility_tok_per_word": 7.7957,
           "macro_tok_per_char": 1.5275,
           "micro_tok_per_char": 1.5286,
+          "macro_tok_per_grapheme": 1.8139,
+          "micro_tok_per_grapheme": 1.8131,
           "macro_tok_per_byte": 0.5943,
           "micro_tok_per_byte": 0.5946,
           "token_expansion_ratio_vs_eng": 7.452,
           "fertility_ratio_vs_eng": 6.346,
           "tok_per_char_ratio_vs_eng": 7.435,
+          "tok_per_grapheme_ratio_vs_eng": 8.819,
           "tok_per_byte_ratio_vs_eng": 2.893
         },
         "kan": {
@@ -85,11 +99,14 @@
           "micro_fertility_tok_per_word": 22.6683,
           "macro_tok_per_char": 2.6552,
           "micro_tok_per_char": 2.6548,
+          "macro_tok_per_grapheme": 3.2612,
+          "micro_tok_per_grapheme": 3.2586,
           "macro_tok_per_byte": 0.9784,
           "micro_tok_per_byte": 0.9786,
           "token_expansion_ratio_vs_eng": 13.588,
           "fertility_ratio_vs_eng": 18.452,
           "tok_per_char_ratio_vs_eng": 12.912,
+          "tok_per_grapheme_ratio_vs_eng": 15.849,
           "tok_per_byte_ratio_vs_eng": 4.762
         },
         "tel": {
@@ -98,11 +115,14 @@
           "micro_fertility_tok_per_word": 20.481,
           "macro_tok_per_char": 2.6406,
           "micro_tok_per_char": 2.6393,
+          "macro_tok_per_grapheme": 3.5933,
+          "micro_tok_per_grapheme": 3.5783,
           "macro_tok_per_byte": 0.99,
           "micro_tok_per_byte": 0.9907,
           "token_expansion_ratio_vs_eng": 13.039,
           "fertility_ratio_vs_eng": 16.672,
           "tok_per_char_ratio_vs_eng": 12.837,
+          "tok_per_grapheme_ratio_vs_eng": 17.404,
           "tok_per_byte_ratio_vs_eng": 4.821
         }
       }
@@ -118,11 +138,14 @@
           "micro_fertility_tok_per_word": 1.2309,
           "macro_tok_per_char": 0.2082,
           "micro_tok_per_char": 0.206,
+          "macro_tok_per_grapheme": 0.2082,
+          "micro_tok_per_grapheme": 0.206,
           "macro_tok_per_byte": 0.208,
           "micro_tok_per_byte": 0.2059,
           "token_expansion_ratio_vs_eng": 1.0,
           "fertility_ratio_vs_eng": 1.0,
           "tok_per_char_ratio_vs_eng": 1.0,
+          "tok_per_grapheme_ratio_vs_eng": 1.0,
           "tok_per_byte_ratio_vs_eng": 1.0
         },
         "hin": {
@@ -131,11 +154,14 @@
           "micro_fertility_tok_per_word": 2.6562,
           "macro_tok_per_char": 0.5216,
           "micro_tok_per_char": 0.5208,
+          "macro_tok_per_grapheme": 0.619,
+          "micro_tok_per_grapheme": 0.6178,
           "macro_tok_per_byte": 0.2031,
           "micro_tok_per_byte": 0.2026,
           "token_expansion_ratio_vs_eng": 2.534,
           "fertility_ratio_vs_eng": 2.158,
           "tok_per_char_ratio_vs_eng": 2.528,
+          "tok_per_grapheme_ratio_vs_eng": 2.999,
           "tok_per_byte_ratio_vs_eng": 0.984
         },
         "kan": {
@@ -144,11 +170,14 @@
           "micro_fertility_tok_per_word": 14.8421,
           "macro_tok_per_char": 1.7394,
           "micro_tok_per_char": 1.7383,
+          "macro_tok_per_grapheme": 2.1363,
+          "micro_tok_per_grapheme": 2.1336,
           "macro_tok_per_byte": 0.641,
           "micro_tok_per_byte": 0.6408,
           "token_expansion_ratio_vs_eng": 8.879,
           "fertility_ratio_vs_eng": 12.058,
           "tok_per_char_ratio_vs_eng": 8.438,
+          "tok_per_grapheme_ratio_vs_eng": 10.357,
           "tok_per_byte_ratio_vs_eng": 3.112
         },
         "tel": {
@@ -157,11 +186,14 @@
           "micro_fertility_tok_per_word": 13.1458,
           "macro_tok_per_char": 1.6953,
           "micro_tok_per_char": 1.694,
+          "macro_tok_per_grapheme": 2.3068,
+          "micro_tok_per_grapheme": 2.2967,
           "macro_tok_per_byte": 0.6358,
           "micro_tok_per_byte": 0.6359,
           "token_expansion_ratio_vs_eng": 8.353,
           "fertility_ratio_vs_eng": 10.68,
           "tok_per_char_ratio_vs_eng": 8.223,
+          "tok_per_grapheme_ratio_vs_eng": 11.149,
           "tok_per_byte_ratio_vs_eng": 3.088
         }
       }
@@ -177,11 +209,14 @@
           "micro_fertility_tok_per_word": 1.253,
           "macro_tok_per_char": 0.2121,
           "micro_tok_per_char": 0.2097,
+          "macro_tok_per_grapheme": 0.2121,
+          "micro_tok_per_grapheme": 0.2097,
           "macro_tok_per_byte": 0.212,
           "micro_tok_per_byte": 0.2096,
           "token_expansion_ratio_vs_eng": 1.0,
           "fertility_ratio_vs_eng": 1.0,
           "tok_per_char_ratio_vs_eng": 1.0,
+          "tok_per_grapheme_ratio_vs_eng": 1.0,
           "tok_per_byte_ratio_vs_eng": 1.0
         },
         "hin": {
@@ -190,11 +225,14 @@
           "micro_fertility_tok_per_word": 4.7426,
           "macro_tok_per_char": 0.9302,
           "micro_tok_per_char": 0.9299,
+          "macro_tok_per_grapheme": 1.1042,
+          "micro_tok_per_grapheme": 1.103,
           "macro_tok_per_byte": 0.3621,
           "micro_tok_per_byte": 0.3617,
           "token_expansion_ratio_vs_eng": 4.445,
           "fertility_ratio_vs_eng": 3.785,
           "tok_per_char_ratio_vs_eng": 4.434,
+          "tok_per_grapheme_ratio_vs_eng": 5.26,
           "tok_per_byte_ratio_vs_eng": 1.726
         },
         "kan": {
@@ -203,11 +241,14 @@
           "micro_fertility_tok_per_word": 11.8,
           "macro_tok_per_char": 1.3822,
           "micro_tok_per_char": 1.382,
+          "macro_tok_per_grapheme": 1.6976,
+          "micro_tok_per_grapheme": 1.6963,
           "macro_tok_per_byte": 0.5095,
           "micro_tok_per_byte": 0.5094,
           "token_expansion_ratio_vs_eng": 6.935,
           "fertility_ratio_vs_eng": 9.417,
           "tok_per_char_ratio_vs_eng": 6.59,
+          "tok_per_grapheme_ratio_vs_eng": 8.089,
           "tok_per_byte_ratio_vs_eng": 2.43
         },
         "tel": {
@@ -216,11 +257,14 @@
           "micro_fertility_tok_per_word": 11.2956,
           "macro_tok_per_char": 1.4572,
           "micro_tok_per_char": 1.4556,
+          "macro_tok_per_grapheme": 1.983,
+          "micro_tok_per_grapheme": 1.9735,
           "macro_tok_per_byte": 0.5466,
           "micro_tok_per_byte": 0.5464,
           "token_expansion_ratio_vs_eng": 7.051,
           "fertility_ratio_vs_eng": 9.015,
           "tok_per_char_ratio_vs_eng": 6.941,
+          "tok_per_grapheme_ratio_vs_eng": 9.411,
           "tok_per_byte_ratio_vs_eng": 2.607
         }
       }
@@ -236,11 +280,14 @@
           "micro_fertility_tok_per_word": 1.3837,
           "macro_tok_per_char": 0.2335,
           "micro_tok_per_char": 0.2316,
+          "macro_tok_per_grapheme": 0.2335,
+          "micro_tok_per_grapheme": 0.2316,
           "macro_tok_per_byte": 0.2333,
           "micro_tok_per_byte": 0.2314,
           "token_expansion_ratio_vs_eng": 1.0,
           "fertility_ratio_vs_eng": 1.0,
           "tok_per_char_ratio_vs_eng": 1.0,
+          "tok_per_grapheme_ratio_vs_eng": 1.0,
           "tok_per_byte_ratio_vs_eng": 1.0
         },
         "hin": {
@@ -249,11 +296,14 @@
           "micro_fertility_tok_per_word": 1.4888,
           "macro_tok_per_char": 0.2935,
           "micro_tok_per_char": 0.2919,
+          "macro_tok_per_grapheme": 0.3484,
+          "micro_tok_per_grapheme": 0.3462,
           "macro_tok_per_byte": 0.1144,
           "micro_tok_per_byte": 0.1135,
           "token_expansion_ratio_vs_eng": 1.263,
           "fertility_ratio_vs_eng": 1.076,
           "tok_per_char_ratio_vs_eng": 1.26,
+          "tok_per_grapheme_ratio_vs_eng": 1.495,
           "tok_per_byte_ratio_vs_eng": 0.49
         },
         "kan": {
@@ -262,11 +312,14 @@
           "micro_fertility_tok_per_word": 2.5666,
           "macro_tok_per_char": 0.3021,
           "micro_tok_per_char": 0.3006,
+          "macro_tok_per_grapheme": 0.371,
+          "micro_tok_per_grapheme": 0.369,
           "macro_tok_per_byte": 0.1115,
           "micro_tok_per_byte": 0.1108,
           "token_expansion_ratio_vs_eng": 1.366,
           "fertility_ratio_vs_eng": 1.855,
           "tok_per_char_ratio_vs_eng": 1.298,
+          "tok_per_grapheme_ratio_vs_eng": 1.593,
           "tok_per_byte_ratio_vs_eng": 0.479
         },
         "tel": {
@@ -275,11 +328,14 @@
           "micro_fertility_tok_per_word": 2.362,
           "macro_tok_per_char": 0.3062,
           "micro_tok_per_char": 0.3044,
+          "macro_tok_per_grapheme": 0.4161,
+          "micro_tok_per_grapheme": 0.4127,
           "macro_tok_per_byte": 0.1153,
           "micro_tok_per_byte": 0.1142,
           "token_expansion_ratio_vs_eng": 1.335,
           "fertility_ratio_vs_eng": 1.707,
           "tok_per_char_ratio_vs_eng": 1.314,
+          "tok_per_grapheme_ratio_vs_eng": 1.782,
           "tok_per_byte_ratio_vs_eng": 0.494
         }
       }

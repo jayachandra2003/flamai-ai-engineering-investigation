@@ -86,14 +86,17 @@ def analyze_all(corpus, tokenizers):
     for lang, lines in corpus.items():
         words_split = sum(len(l.split()) for l in lines)
         chars = sum(len(l) for l in lines)
+        graphemes = sum(sum(1 for c in l if unicodedata.category(c) not in ('Mn', 'Me')) for l in lines)
         bytes_utf8 = sum(len(l.encode("utf-8")) for l in lines)
         full_results["corpus_stats"][lang] = {
             "lines": len(lines),
             "whitespace_words": words_split,
             "unicode_chars": chars,
+            "grapheme_clusters": graphemes,
             "utf8_bytes": bytes_utf8,
             "words_per_sentence": round(words_split / len(lines), 2),
             "chars_per_sentence": round(chars / len(lines), 2),
+            "graphemes_per_sentence": round(graphemes / len(lines), 2),
             "bytes_per_char": round(bytes_utf8 / chars, 2)
         }
 
@@ -112,10 +115,12 @@ def analyze_all(corpus, tokenizers):
             line_token_counts = []
             line_word_counts = []
             line_char_counts = []
+            line_grapheme_counts = []
             line_byte_counts = []
             
             per_line_fert = []
             per_line_tpc = []
+            per_line_tpg = []
             per_line_tpb = []
 
             for l in lines:
@@ -123,26 +128,32 @@ def analyze_all(corpus, tokenizers):
                 n_toks = len(toks)
                 w = len(l.split())
                 c = len(l)
+                g = sum(1 for ch in l if unicodedata.category(ch) not in ('Mn', 'Me'))
                 b = len(l.encode("utf-8"))
 
                 line_token_counts.append(n_toks)
                 line_word_counts.append(w)
                 line_char_counts.append(c)
+                line_grapheme_counts.append(g)
                 line_byte_counts.append(b)
 
                 per_line_fert.append(n_toks / w)
                 per_line_tpc.append(n_toks / c)
+                per_line_tpg.append(n_toks / g)
                 per_line_tpb.append(n_toks / b)
 
             tot_tokens = sum(line_token_counts)
             tot_words = sum(line_word_counts)
             tot_chars = sum(line_char_counts)
+            tot_graphemes = sum(line_grapheme_counts)
             tot_bytes = sum(line_byte_counts)
 
             macro_fert = sum(per_line_fert) / len(per_line_fert)
             micro_fert = tot_tokens / tot_words
             macro_tpc = sum(per_line_tpc) / len(per_line_tpc)
             micro_tpc = tot_tokens / tot_chars
+            macro_tpg = sum(per_line_tpg) / len(per_line_tpg)
+            micro_tpg = tot_tokens / tot_graphemes
             macro_tpb = sum(per_line_tpb) / len(per_line_tpb)
             micro_tpb = tot_tokens / tot_bytes
 
@@ -152,6 +163,8 @@ def analyze_all(corpus, tokenizers):
                 "micro_fertility_tok_per_word": round(micro_fert, 4),
                 "macro_tok_per_char": round(macro_tpc, 4),
                 "micro_tok_per_char": round(micro_tpc, 4),
+                "macro_tok_per_grapheme": round(macro_tpg, 4),
+                "micro_tok_per_grapheme": round(micro_tpg, 4),
                 "macro_tok_per_byte": round(macro_tpb, 4),
                 "micro_tok_per_byte": round(micro_tpb, 4),
             }
@@ -160,12 +173,14 @@ def analyze_all(corpus, tokenizers):
         eng_tokens = tok_data["languages"]["eng"]["total_tokens"]
         eng_micro_fert = tok_data["languages"]["eng"]["micro_fertility_tok_per_word"]
         eng_micro_tpc = tok_data["languages"]["eng"]["micro_tok_per_char"]
+        eng_micro_tpg = tok_data["languages"]["eng"]["micro_tok_per_grapheme"]
         eng_micro_tpb = tok_data["languages"]["eng"]["micro_tok_per_byte"]
 
         for lang, l_metrics in tok_data["languages"].items():
             l_metrics["token_expansion_ratio_vs_eng"] = round(l_metrics["total_tokens"] / eng_tokens, 3)
             l_metrics["fertility_ratio_vs_eng"] = round(l_metrics["micro_fertility_tok_per_word"] / eng_micro_fert, 3)
             l_metrics["tok_per_char_ratio_vs_eng"] = round(l_metrics["micro_tok_per_char"] / eng_micro_tpc, 3)
+            l_metrics["tok_per_grapheme_ratio_vs_eng"] = round(l_metrics["micro_tok_per_grapheme"] / eng_micro_tpg, 3)
             l_metrics["tok_per_byte_ratio_vs_eng"] = round(l_metrics["micro_tok_per_byte"] / eng_micro_tpb, 3)
 
         full_results["tokenizer_metrics"][tok_id] = tok_data
@@ -174,18 +189,18 @@ def analyze_all(corpus, tokenizers):
 
 
 def print_summary_tables(results):
-    print("\n" + "=" * 105)
+    print("\n" + "=" * 115)
     print("PART A3: CORRECTED MULTILINGUAL METRIC ANALYSIS (FLORES-200, 997 Parallel Sentences)")
-    print("=" * 105)
+    print("=" * 115)
 
     for tok_id, t_data in results["tokenizer_metrics"].items():
         print(f"\n>>> Tokenizer: {t_data['tokenizer_name']} | Vocab: {t_data['vocab_size']:,} | Family: {t_data['family']}")
-        header = f"{'Lang':<6}{'Total Toks':>12}{'Tok/Word':>10}{'Tok/Char':>10}{'Tok/Byte':>10}{'Tok Expansion vs Eng':>22}{'Fertility vs Eng':>18}{'Tok/Char vs Eng':>18}"
+        header = f"{'Lang':<6}{'Total Toks':>12}{'Tok/Word':>10}{'Tok/Char':>10}{'Tok/Graph':>10}{'Tok/Byte':>10}{'Tok Expansion vs Eng':>22}{'Fertility vs Eng':>18}"
         print(header)
         print("-" * len(header))
         for lang in LANGS:
             m = t_data["languages"][lang]
-            print(f"{lang:<6}{m['total_tokens']:>12d}{m['micro_fertility_tok_per_word']:>10.2f}{m['micro_tok_per_char']:>10.3f}{m['micro_tok_per_byte']:>10.3f}{m['token_expansion_ratio_vs_eng']:>21.2f}x{m['fertility_ratio_vs_eng']:>17.2f}x{m['tok_per_char_ratio_vs_eng']:>17.2f}x")
+            print(f"{lang:<6}{m['total_tokens']:>12d}{m['micro_fertility_tok_per_word']:>10.2f}{m['micro_tok_per_char']:>10.3f}{m['micro_tok_per_grapheme']:>10.3f}{m['micro_tok_per_byte']:>10.3f}{m['token_expansion_ratio_vs_eng']:>21.2f}x{m['fertility_ratio_vs_eng']:>17.2f}x")
         print("-" * len(header))
 
     print("\n" + "=" * 105)

@@ -21,11 +21,12 @@ To ensure grounded engineering decisions, we distinguish what is directly establ
 | Candidate Metric | Formula | What It Measures | Advantages & Use Cases | Fundamental Limitations | Suitability for Routing / Cost Decisions |
 |---|---|---|---|---|:---:|
 | **A. Tokens / Whitespace Word** | $\frac{\text{Tokens}}{\text{Words}_{\text{ws}}}$ | Subword fragmentation per space-delimited string. | Quick diagnostic for English-like analytic languages. | Conflates morphology with tokenization; penalizes agglutinative languages (Kannada, Telugu) where words contain multiple morphemes. | **UNSUITABLE** for cross-lingual cost decisions. |
-| **B. Tokens / Unicode Character** | $\frac{\text{Tokens}}{\text{Chars}_{\text{unicode}}}$ | Tokenization density per Unicode code point. | Less sensitive to whitespace variations. | Indic scripts use diacritics/matras as separate code points; doesn't reflect semantic density. | **POOR** (Distorts across script types). |
-| **C. Tokens / UTF-8 Byte** | $\frac{\text{Tokens}}{\text{Bytes}_{\text{utf8}}}$ | Tokenization compression per raw data byte. | Diagnostic for byte-level BPE compression efficiency relative to encoded text representation. | Indic characters require 3 UTF-8 bytes vs 1 byte for ASCII; byte density is not linguistically neutral. | **SECONDARY DIAGNOSTIC ONLY**. |
-| **D. Total Tokens on Parallel Content** | $\sum_{i=1}^N T_{i,\text{lang}}$ | Total sequence length generated for identical semantic text. | Directly reflects token sequence length submitted to LLM prefill/KV cache. | Requires parallel reference text to compute baseline. | **EXCELLENT FOR BENCHMARKING**. |
-| **E. Relative Token Expansion vs English** | $\frac{\text{Total Tokens}(\text{lang})}{\text{Total Tokens}(\text{eng})}$ | Normalized multiplicative token inflation for equivalent meaning. | Direct multiplier for token-based API pricing, context consumption, and KV cache sizing. | Assumes English as baseline reference. | **RECOMMENDED PRIMARY METRIC**. |
-| **F. Macro vs Micro Aggregation** | Macro: $\frac{1}{N}\sum \frac{T_i}{D_i}$<br>Micro: $\frac{\sum T_i}{\sum D_i}$ | Unweighted line average vs global corpus total ratio. | Micro directly models total system token volume. | Macro overweights short lines with extreme ratios. | **MICRO RECOMMENDED**. |
+| **B. Tokens / Unicode Character** | $\frac{\text{Tokens}}{\text{Chars}_{\text{unicode}}}$ | Tokenization density per Unicode code point (scalar value). | Less sensitive to whitespace variations. | Indic scripts use diacritics/matras as separate code points; does not reflect perceived typographical units. | **POOR** (Distorts across script types). |
+| **C. Tokens / Grapheme Cluster** | $\frac{\text{Tokens}}{\text{Graphemes}}$ | Tokenization density per user-perceived typographical character (akshara). | Accurately treats consonant + combining matras as a single visual unit. | Does not resolve multi-morpheme lexical density differences across languages. | **STRUCTURAL DIAGNOSTIC**. |
+| **D. Tokens / UTF-8 Byte** | $\frac{\text{Tokens}}{\text{Bytes}_{\text{utf8}}}$ | Tokenization compression per raw data byte. | Diagnostic for byte-level BPE compression efficiency relative to encoded text representation. | Indic characters require 3 UTF-8 bytes vs 1 byte for ASCII; byte density is not linguistically neutral. | **SECONDARY DIAGNOSTIC ONLY**. |
+| **E. Total Tokens on Parallel Content** | $\sum_{i=1}^N T_{i,\text{lang}}$ | Total sequence length generated for identical semantic text. | Directly reflects token sequence length submitted to LLM prefill/KV cache. | Requires parallel reference text to compute baseline. | **EXCELLENT FOR BENCHMARKING**. |
+| **F. Relative Token Expansion vs English** | $\frac{\text{Total Tokens}(\text{lang})}{\text{Total Tokens}(\text{eng})}$ | Normalized multiplicative token inflation for equivalent meaning. | Direct multiplier for token-based API pricing, context consumption, and KV cache sizing. | Assumes English as baseline reference. | **RECOMMENDED PRIMARY METRIC**. |
+| **G. Macro vs Micro Aggregation** | Macro: $\frac{1}{N}\sum \frac{T_i}{D_i}$<br>Micro: $\frac{\sum T_i}{\sum D_i}$ | Unweighted line average vs global corpus total ratio. | Micro directly models total system token volume. | Macro overweights short lines with extreme ratios. | **MICRO RECOMMENDED**. |
 
 ---
 
@@ -33,24 +34,24 @@ To ensure grounded engineering decisions, we distinguish what is directly establ
 
 All metrics computed directly from [`partA/corpus/`](partA/corpus/) via [`partA/corrected_analysis/analyze_metrics.py`](partA/corrected_analysis/analyze_metrics.py):
 
-| Tokenizer | Vocab Size | Language | Total Tokens | Tok / Word (`split()`) | Tok / Char | Tok / UTF-8 Byte | Relative Token Expansion vs. Eng | Fertility Ratio vs. Eng |
-|---|:---:|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **GPT-2** (tiktoken) | 50,257 | **eng** | 25,741 | 1.23 | 0.206 | 0.205 | 1.00× | 1.00× |
-| | | **hin** | 191,828 | 7.80 | 1.529 | 0.595 | **7.45×** | **6.35×** |
-| | | **kan** | 349,772 | 22.67 | 2.655 | 0.979 | **13.59×** | **18.45×** |
-| | | **tel** | 335,642 | 20.48 | 2.639 | 0.991 | **13.04×** | **16.67×** |
-| **Meta-Llama-3-8B** (128k scale) | 128,000 | **eng** | 25,792 | 1.23 | 0.206 | 0.206 | 1.00× | 1.00× |
-| | | **hin** | 65,361 | 2.66 | 0.521 | 0.203 | **2.53×** | **2.16×** |
-| | | **kan** | 229,014 | 14.84 | 1.738 | 0.641 | **8.88×** | **12.06×** |
-| | | **tel** | 215,433 | 13.15 | 1.694 | 0.636 | **8.35×** | **10.68×** |
-| **Qwen2.5-7B** (152k scale) | 151,643 | **eng** | 26,255 | 1.25 | 0.210 | 0.210 | 1.00× | 1.00× |
-| | | **hin** | 116,701 | 4.74 | 0.930 | 0.362 | **4.45×** | **3.79×** |
-| | | **kan** | 182,074 | 11.80 | 1.382 | 0.509 | **6.93×** | **9.42×** |
-| | | **tel** | 185,113 | 11.30 | 1.456 | 0.546 | **7.05×** | **9.02×** |
-| **XLM-RoBERTa-base** (250k scale) | 250,002 | **eng** | 28,995 | 1.38 | 0.232 | 0.231 | 1.00× | 1.00× |
-| | | **hin** | 36,634 | 1.49 | 0.292 | 0.114 | **1.26×** | **1.08×** |
-| | | **kan** | 39,602 | 2.57 | 0.301 | 0.111 | **1.37×** | **1.85×** |
-| | | **tel** | 38,708 | 2.36 | 0.304 | 0.114 | **1.33×** | **1.71×** |
+| Tokenizer | Vocab Size | Language | Total Tokens | Tok / Word (`split()`) | Tok / Char | Tok / Grapheme | Tok / UTF-8 Byte | Relative Token Expansion vs. Eng | Fertility Ratio vs. Eng |
+|---|:---:|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **GPT-2** (tiktoken) | 50,257 | **eng** | 25,741 | 1.23 | 0.206 | 0.206 | 0.205 | 1.00× | 1.00× |
+| | | **hin** | 191,828 | 7.80 | 1.529 | 1.813 | 0.595 | **7.45×** | **6.35×** |
+| | | **kan** | 349,772 | 22.67 | 2.655 | 3.259 | 0.979 | **13.59×** | **18.45×** |
+| | | **tel** | 335,642 | 20.48 | 2.639 | 3.578 | 0.991 | **13.04×** | **16.67×** |
+| **Meta-Llama-3-8B** (128k scale) | 128,000 | **eng** | 25,792 | 1.23 | 0.206 | 0.206 | 0.206 | 1.00× | 1.00× |
+| | | **hin** | 65,361 | 2.66 | 0.521 | 0.618 | 0.203 | **2.53×** | **2.16×** |
+| | | **kan** | 229,014 | 14.84 | 1.738 | 2.134 | 0.641 | **8.88×** | **12.06×** |
+| | | **tel** | 215,433 | 13.15 | 1.694 | 2.297 | 0.636 | **8.35×** | **10.68×** |
+| **Qwen2.5-7B** (152k scale) | 151,643 | **eng** | 26,255 | 1.25 | 0.210 | 0.210 | 0.210 | 1.00× | 1.00× |
+| | | **hin** | 116,701 | 4.74 | 0.930 | 1.103 | 0.362 | **4.45×** | **3.79×** |
+| | | **kan** | 182,074 | 11.80 | 1.382 | 1.696 | 0.509 | **6.93×** | **9.42×** |
+| | | **tel** | 185,113 | 11.30 | 1.456 | 1.974 | 0.546 | **7.05×** | **9.02×** |
+| **XLM-RoBERTa-base** (250k scale) | 250,002 | **eng** | 28,995 | 1.38 | 0.232 | 0.232 | 0.231 | 1.00× | 1.00× |
+| | | **hin** | 36,634 | 1.49 | 0.292 | 0.346 | 0.114 | **1.26×** | **1.08×** |
+| | | **kan** | 39,602 | 2.57 | 0.301 | 0.369 | 0.111 | **1.37×** | **1.85×** |
+| | | **tel** | 38,708 | 2.36 | 0.304 | 0.413 | 0.114 | **1.33×** | **1.71×** |
 
 ---
 
