@@ -1,0 +1,162 @@
+{
+  "sample": [
+    {
+      "corpus": "sample",
+      "tokenizer": "gpt2",
+      "lang": "eng",
+      "fert_lower": 1.2831,
+      "fert_cased": 1.2472,
+      "fert_pct_change": -2.8,
+      "tok_per_char_lower": 0.2256,
+      "tok_per_char_cased": 0.2196,
+      "total_tokens_lower": 99,
+      "total_tokens_cased": 96,
+      "total_tokens_pct_change": -3.03
+    },
+    {
+      "corpus": "sample",
+      "tokenizer": "gpt2",
+      "lang": "hin",
+      "fert_lower": 7.5985,
+      "fert_cased": 7.5985,
+      "fert_pct_change": 0.0,
+      "tok_per_char_lower": 1.5791,
+      "tok_per_char_cased": 1.5791,
+      "total_tokens_lower": 459,
+      "total_tokens_cased": 459,
+      "total_tokens_pct_change": 0.0
+    },
+    {
+      "corpus": "sample",
+      "tokenizer": "llama3",
+      "lang": "eng",
+      "fert_lower": 1.243,
+      "fert_cased": 1.2329,
+      "fert_pct_change": -0.81,
+      "tok_per_char_lower": 0.2182,
+      "tok_per_char_cased": 0.217,
+      "total_tokens_lower": 96,
+      "total_tokens_cased": 95,
+      "total_tokens_pct_change": -1.04
+    },
+    {
+      "corpus": "sample",
+      "tokenizer": "llama3",
+      "lang": "hin",
+      "fert_lower": 2.6055,
+      "fert_cased": 2.6055,
+      "fert_pct_change": 0.0,
+      "tok_per_char_lower": 0.5409,
+      "tok_per_char_cased": 0.5409,
+      "total_tokens_lower": 156,
+      "total_tokens_cased": 156,
+      "total_tokens_pct_change": 0.0
+    }
+  ],
+  "flore200": [
+    {
+      "corpus": "flore200",
+      "tokenizer": "gpt2",
+      "lang": "eng",
+      "fert_lower": 1.2826,
+      "fert_cased": 1.2367,
+      "fert_pct_change": -3.58,
+      "tok_per_char_lower": 0.2152,
+      "tok_per_char_cased": 0.2076,
+      "total_tokens_lower": 26696,
+      "total_tokens_cased": 25741,
+      "total_tokens_pct_change": -3.58
+    },
+    {
+      "corpus": "flore200",
+      "tokenizer": "gpt2",
+      "lang": "hin",
+      "fert_lower": 7.826,
+      "fert_cased": 7.8253,
+      "fert_pct_change": -0.01,
+      "tok_per_char_lower": 1.5276,
+      "tok_per_char_cased": 1.5275,
+      "total_tokens_lower": 191842,
+      "total_tokens_cased": 191828,
+      "total_tokens_pct_change": -0.01
+    },
+    {
+      "corpus": "flore200",
+      "tokenizer": "gpt2",
+      "lang": "kan",
+      "fert_lower": 22.9456,
+      "fert_cased": 22.9439,
+      "fert_pct_change": -0.01,
+      "tok_per_char_lower": 2.6555,
+      "tok_per_char_cased": 2.6552,
+      "total_tokens_lower": 349802,
+      "total_tokens_cased": 349772,
+      "total_tokens_pct_change": -0.01
+    },
+    {
+      "corpus": "flore200",
+      "tokenizer": "gpt2",
+      "lang": "tel",
+      "fert_lower": 20.6243,
+      "fert_cased": 20.6185,
+      "fert_pct_change": -0.03,
+      "tok_per_char_lower": 2.6414,
+      "tok_per_char_cased": 2.6406,
+      "total_tokens_lower": 335737,
+      "total_tokens_cased": 335642,
+      "total_tokens_pct_change": -0.03
+    },
+    {
+      "corpus": "flore200",
+      "tokenizer": "llama3",
+      "lang": "eng",
+      "fert_lower": 1.2644,
+      "fert_cased": 1.2395,
+      "fert_pct_change": -1.97,
+      "tok_per_char_lower": 0.2123,
+      "tok_per_char_cased": 0.2082,
+      "total_tokens_lower": 26311,
+      "total_tokens_cased": 25792,
+      "total_tokens_pct_change": -1.97
+    },
+    {
+      "corpus": "flore200",
+      "tokenizer": "llama3",
+      "lang": "hin",
+      "fert_lower": 2.6668,
+      "fert_cased": 2.6667,
+      "fert_pct_change": -0.0,
+      "tok_per_char_lower": 0.5216,
+      "tok_per_char_cased": 0.5216,
+      "total_tokens_lower": 65363,
+      "total_tokens_cased": 65361,
+      "total_tokens_pct_change": -0.0
+    },
+    {
+      "corpus": "flore200",
+      "tokenizer": "llama3",
+      "lang": "kan",
+      "fert_lower": 15.0369,
+      "fert_cased": 15.0359,
+      "fert_pct_change": -0.01,
+      "tok_per_char_lower": 1.7395,
+      "tok_per_char_cased": 1.7394,
+      "total_tokens_lower": 229030,
+      "total_tokens_cased": 229014,
+      "total_tokens_pct_change": -0.01
+    },
+    {
+      "corpus": "flore200",
+      "tokenizer": "llama3",
+      "lang": "tel",
+      "fert_lower": 13.246,
+      "fert_cased": 13.2431,
+      "fert_pct_change": -0.02,
+      "tok_per_char_lower": 1.6957,
+      "tok_per_char_cased": 1.6953,
+      "total_tokens_lower": 215482,
+      "total_tokens_cased": 215433,
+      "total_tokens_pct_change": -0.02
+    }
+  ]
+}

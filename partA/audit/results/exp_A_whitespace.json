@@ -1,0 +1,66 @@
+{
+  "sample": [
+    {
+      "corpus": "sample",
+      "lang": "eng",
+      "macro_fert_orig_split_space": 1.2652,
+      "macro_fert_corr_split_ws": 1.2831,
+      "words_orig": 79,
+      "words_corr": 78,
+      "abs_diff": 0.0179,
+      "pct_change": 1.41
+    },
+    {
+      "corpus": "sample",
+      "lang": "hin",
+      "macro_fert_orig_split_space": 7.4485,
+      "macro_fert_corr_split_ws": 7.5985,
+      "words_orig": 62,
+      "words_corr": 61,
+      "abs_diff": 0.15,
+      "pct_change": 2.01
+    }
+  ],
+  "flore200": [
+    {
+      "corpus": "flore200",
+      "lang": "eng",
+      "macro_fert_orig_split_space": 1.2825,
+      "macro_fert_corr_split_ws": 1.2826,
+      "words_orig": 20955,
+      "words_corr": 20954,
+      "abs_diff": 0.0,
+      "pct_change": 0.0
+    },
+    {
+      "corpus": "flore200",
+      "lang": "hin",
+      "macro_fert_orig_split_space": 7.8232,
+      "macro_fert_corr_split_ws": 7.826,
+      "words_orig": 24616,
+      "words_corr": 24607,
+      "abs_diff": 0.0028,
+      "pct_change": 0.04
+    },
+    {
+      "corpus": "flore200",
+      "lang": "kan",
+      "macro_fert_orig_split_space": 22.1483,
+      "macro_fert_corr_split_ws": 22.9456,
+      "words_orig": 16122,
+      "words_corr": 15430,
+      "abs_diff": 0.7973,
+      "pct_change": 3.6
+    },
+    {
+      "corpus": "flore200",
+      "lang": "tel",
+      "macro_fert_orig_split_space": 20.3995,
+      "macro_fert_corr_split_ws": 20.6243,
+      "words_orig": 16598,
+      "words_corr": 16388,
+      "abs_diff": 0.2249,
+      "pct_change": 1.1
+    }
+  ]
+}

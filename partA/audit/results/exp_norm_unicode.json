@@ -1,0 +1,54 @@
+{
+  "sample": [
+    {
+      "corpus": "sample",
+      "lang": "eng",
+      "tokens_nfc": 99,
+      "tokens_raw": 99,
+      "tokens_nfd": 99,
+      "nfd_inflation_pct": 0.0
+    },
+    {
+      "corpus": "sample",
+      "lang": "hin",
+      "tokens_nfc": 459,
+      "tokens_raw": 459,
+      "tokens_nfd": 459,
+      "nfd_inflation_pct": 0.0
+    }
+  ],
+  "flore200": [
+    {
+      "corpus": "flore200",
+      "lang": "eng",
+      "tokens_nfc": 26696,
+      "tokens_raw": 26696,
+      "tokens_nfd": 26723,
+      "nfd_inflation_pct": 0.1
+    },
+    {
+      "corpus": "flore200",
+      "lang": "hin",
+      "tokens_nfc": 191842,
+      "tokens_raw": 191842,
+      "tokens_nfd": 191846,
+      "nfd_inflation_pct": 0.0
+    },
+    {
+      "corpus": "flore200",
+      "lang": "kan",
+      "tokens_nfc": 349802,
+      "tokens_raw": 349802,
+      "tokens_nfd": 364303,
+      "nfd_inflation_pct": 4.15
+    },
+    {
+      "corpus": "flore200",
+      "lang": "tel",
+      "tokens_nfc": 335737,
+      "tokens_raw": 335737,
+      "tokens_nfd": 337770,
+      "nfd_inflation_pct": 0.61
+    }
+  ]
+}

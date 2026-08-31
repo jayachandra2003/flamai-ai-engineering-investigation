@@ -1,0 +1,45 @@
+{
+  "hardware_and_model_specs": {
+    "model_name": "FLM-4B-Instruct",
+    "params_billion": 4.2,
+    "layers": 28,
+    "d_model": 3072,
+    "q_heads": 24,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "vocab_size": 128000,
+    "weights_precision": "fp16",
+    "kv_precision": "fp16",
+    "gpu_name": "NVIDIA L4",
+    "vram_nominal_gb": 24.0,
+    "memory_bandwidth_gb_s": 300.0,
+    "fp16_dense_tflops": 121.0,
+    "max_model_len": 4096,
+    "gpu_memory_utilization": 0.92,
+    "non_kv_overhead_gb": 1.6
+  },
+  "token_and_sequence_footprint": {
+    "kv_bytes_per_token": 114688,
+    "kv_kib_per_token": 112.0,
+    "seq_len": 4096,
+    "kv_bytes_per_4096_seq": 469762048,
+    "kv_mib_per_4096_seq": 448.0,
+    "kv_decimal_gb_per_4096_seq": 0.4698
+  },
+  "decimal_gb_modeling": {
+    "usable_vram_gb": 22.08,
+    "model_weights_gb": 8.4,
+    "non_kv_overhead_gb": 1.6,
+    "available_kv_budget_gb": 12.08,
+    "theoretical_max_4096_seqs": 25.72,
+    "batch_24_demand_gb": 11.27,
+    "batch_24_predicted_utilization": 0.9333
+  },
+  "binary_gib_modeling": {
+    "usable_vram_gib": 22.08,
+    "model_weights_gib": 7.823,
+    "non_kv_overhead_gib": 1.6,
+    "available_kv_budget_gib": 12.657,
+    "theoretical_max_4096_seqs": 28.93
+  }
+}
