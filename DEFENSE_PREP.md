@@ -77,7 +77,7 @@ Concise, interview-ready answers for the 30-minute technical defense of "The Aud
 * **Answer:** $249.82\text{ tok/s}$ ($\frac{24}{0.09607\text{ s}}$) is the **median decode-phase rate estimate** derived from ITL. It only measures instantaneous token emission during the active decode loop, ignoring the ~500ms prefill phase and engine dispatch overhead.
 
 ### 18. What single metric confirms B2?
-* **Answer:** **`num_preemptions_total`** (e.g. `vllm:num_preemptions_total`). It directly verifies when concurrent active sequences exceed physical KV cache capacity, causing scheduler evictions.
+* **Answer:** **`num_preemptions_total`** directly measures sequence preemptions; an increase alongside KV-cache saturation would support the hypothesis that memory pressure is causing scheduler evictions.
 
 ### 19. Why Path C (Prompt Engineering)?
 * **Answer:**
