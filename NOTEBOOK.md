@@ -149,7 +149,7 @@ From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
 
 ### B4 — Single Recommended Production Validation Metric
 * **Recommended Metric:** **`num_preemptions_total`** (e.g. `vllm:num_preemptions_total`).
-* **Diagnostic Value:** Tests the preemption component of the hypothesis. Under healthy concurrency ($\le 24$), preemptions remain **0**. Under memory pressure, preemptions rise above $0$, directly signaling scheduler evictions.
+* **Diagnostic Value:** Tests the preemption component of the hypothesis. In the tested configurations up to batch 24, preemptions were 0. Under higher tested concurrency, preemptions increased to 7 at batch 32 and 23 at batch 48.
 
 ---
 

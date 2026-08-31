@@ -121,7 +121,7 @@ $$\text{Rate}_{\text{decode}} = \frac{\text{Batch Size}}{\text{ITL}_{\text{secon
 ## 4. B4: Single Recommended Production Validation Metric
 
 * **Recommended Metric:** **`num_preemptions_total`** (e.g. Prometheus / vLLM metric `vllm:num_preemptions_total`).
-* **Why It Is Diagnostic:** Directly tests the preemption component of the hypothesis. Under healthy concurrency ($\le 24$ at 4096 context), preemptions remain **$0$**. Under memory pressure, preemptions rise above $0$, directly signaling that the scheduler is unable to keep all sequences resident in the KV cache block pool.
+* **Why It Is Diagnostic:** Directly tests the preemption component of the hypothesis. In the tested configurations up to batch 24, preemptions were 0. Under higher tested concurrency, preemptions increased to 7 at batch 32 and 23 at batch 48.
 * **Limitation:** The counter validates the occurrence of scheduler evictions; it does not by itself capture subsequent queue delay or recomputation latency, which should be monitored alongside TTFT and p95 E2E latency.
 
 ---

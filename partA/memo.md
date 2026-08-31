@@ -36,7 +36,7 @@
 * **RECOMMENDED LIVE METRIC:** **Mean Total Tokens per Request by Language relative to English** ($\frac{\bar{T}_{\text{lang, req}}}{\bar{T}_{\text{eng, req}}}$).
 * **What It Measures:** The actual average token payload (prompt tokens + generated tokens) processed per user request for each language in live production traffic.
 * **Why It Matters:** Validates whether real-world customer prompts and completion lengths align with offline parallel evaluation projections or if language-specific verbosity and code-mixing alter token consumption.
-* **Diagnostic Threshold / Trigger:** If $\frac{\bar{T}_{\text{lang, req}}}{\bar{T}_{\text{eng, req}}}$ systematically exceeds the offline parallel token expansion ratio by more than **20%** over a 24-hour window, it indicates unexpected prompt inflation, unhandled code-switching/transliteration, or task divergence requiring dedicated router rebalancing.
+* **Diagnostic Threshold / Trigger:** A proposed alerting threshold could be set by comparing live request ratios with the offline benchmark; the threshold should be calibrated from production traffic rather than assumed from this offline study.
 
 ---
 
