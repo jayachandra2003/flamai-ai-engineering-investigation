@@ -188,7 +188,7 @@ From `bench/bench_log.csv` (Prompt=3584, Gen=512, Total=4096 tokens):
 
 1. **Tokenizer Selection Governs Expansion:** Claims that Indic scripts are inherently 6× more expensive were artifacts of testing GPT-2. On modern tokenizers, expansion is 1.26×–2.53×.
 2. **Whitespace Fertility Is Flawed for Dravidian Languages:** Whitespace word denominators penalize agglutinative morphology; Relative Token Expansion on parallel text must be used instead.
-3. **Serving Capacity Bounded at Batch 24:** At 4096 context on 1× L4, concurrency above batch 24 exceeds KV cache memory, triggering severe preemption and latency inflation.
+3. **Empirical Safe Operating Point at Batch 24:** Batch 24 was the highest tested configuration with zero preemptions. The theoretical 4096-token capacity is approximately 25.72 sequences under the primary decimal model; batch 32 exceeded the modeled KV-cache budget and logged 7 preemptions. At batch 48, memory saturation triggers 23 sequence preemptions, cutting throughput to $1298.5\text{ tok/s}$ and inflating p95 latency to $105.4\text{ seconds}$.
 4. **Prompt Engineering Is the Optimal Day-1 Strategy:** Minimizes deployment complexity and respects the 30-hour reviewer constraint.
 
 ---

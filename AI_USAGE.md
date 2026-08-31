@@ -45,4 +45,4 @@ During the course of the investigation, human-in-the-loop oversight identified a
 
 ## 4. Verification Statement
 
-All AI-generated scripts, calculations, and analytical conclusions were experimentally executed and verified against raw data files (`bench_log.csv`, `model_spec.md`, FLORES-200 parallel text). AI assistance was used as an interactive accelerator; all final conclusions and audit findings were reviewed and validated by the human engineer.
+All executable analyses and calculations were run against the supplied data and generated artifacts. Final conclusions and recommendations were reviewed against those results and the assignment constraints.
