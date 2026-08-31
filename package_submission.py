@@ -16,6 +16,7 @@ INCLUDED_PATHS = [
     "NOTEBOOK.md",
     "AI_USAGE.md",
     "DEFENSE_PREP.md",
+    "requirements.txt",
     "partA",
     "partB",
     "partC"
