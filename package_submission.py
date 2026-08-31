@@ -17,6 +17,10 @@ INCLUDED_PATHS = [
     "AI_USAGE.md",
     "DEFENSE_PREP.md",
     "requirements.txt",
+    "fertility.py",
+    "REPORT_v0.md",
+    "bench",
+    "corpus_sample",
     "partA",
     "partB",
     "partC"
